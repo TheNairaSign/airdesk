@@ -1,9 +1,7 @@
-// ignore_for_file: deprecated_member_use
-
+import 'package:air_desk/widgets/airdesk_and_logo.dart';
 import 'package:air_desk/widgets/share_container.dart';
 import 'package:air_desk/widgets/view_container.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -12,8 +10,6 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final img = "assets/air-desk-logo.png";
-  final size = 45.0;
 
   @override
   Widget build(BuildContext context) {
@@ -21,31 +17,12 @@ class _MainPageState extends State<MainPage> {
       child: Scaffold(
         body: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.only(top: 70, left: 15, right: 15),
+            padding: const EdgeInsets.only(top: 40, left: 15, right: 15, bottom: 40),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                        height: size, width: size, child: Image.asset(img)),
-                    const SizedBox(
-                      width: 15,
-                    ),
-                    Text(
-                      "airdesk",
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineLarge!
-                          .copyWith(fontWeight: FontWeight.bold),
-                      textScaleFactor: 1.3,
-                    ),
-                  ],
-                ),
-                // const SizedBox(height: 30),
+                const AirdeskAndLogo(),
                 Padding(
-                  padding: const EdgeInsets.only(
-                      top: 30, left: 15, right: 15, bottom: 40),
+                  padding: const EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 40),
                   child: Text(
                     "Share links, texts and files between devices and people instantly.",
                     textAlign: TextAlign.center,
