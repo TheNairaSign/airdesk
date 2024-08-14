@@ -1,6 +1,7 @@
 import 'dart:io';
-
+import 'package:air_desk/pages/qr_data_page.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class QrScanner extends StatefulWidget {
@@ -13,6 +14,12 @@ class _QrScannerState extends State<QrScanner> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   Barcode? result;
   QRViewController? controller;
+
+  void saveOrDisplayFile(File file) {
+  // For example, open the file with the appropriate app
+  OpenFile.open(file.path);
+}
+
 
   @override
   void reassemble() {
@@ -32,10 +39,7 @@ class _QrScannerState extends State<QrScanner> {
             flex: 5,
             child: QRView(
               key: qrKey,
-              onQRViewCreated: (controller) {
-                debugPrint("View created");
-                _onQRViewCreated(controller);
-              },
+              onQRViewCreated: _onQRViewCreated,
               cameraFacing: CameraFacing.back,
             ),
           ),
@@ -43,8 +47,14 @@ class _QrScannerState extends State<QrScanner> {
             flex: 1,
             child: Center(
               child: (result != null)
-                  ? Text('Barcode Type: ${result!.format}   Data: ${result!.code}', style:Theme.of(context).textTheme.bodyLarge,)
-                  : Text('Scan a code', style: Theme.of(context).textTheme.bodyLarge),
+                  ? Text(
+                      'Barcode Type: ${result!.format}   Data: ${result!.code}',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    )
+                  : Text(
+                      'Scan a code',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
             ),
           )
         ],
@@ -60,6 +70,15 @@ class _QrScannerState extends State<QrScanner> {
       setState(() {
         result = scanData;
       });
+      if (result != null) {
+        controller.pauseCamera();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => QrDataPage(data: result!.code),
+          ),
+        );
+      }
     });
   }
 
