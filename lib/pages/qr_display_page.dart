@@ -4,8 +4,6 @@ import 'package:air_desk/provider/code_provider.dart';
 import 'package:air_desk/widgets/airdesk_and_logo.dart';
 import 'package:air_desk/widgets/code_container.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 

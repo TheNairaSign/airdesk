@@ -11,6 +11,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 class ShareContainer extends StatefulWidget {
   const ShareContainer({super.key});
@@ -24,6 +25,48 @@ class _ShareContainerState extends State<ShareContainer> {
   bool _isLoading = false;
   List<File> _pickedFiles = [];
   String? base64String; // Declare globally to use later
+
+  Future<void> postData(String code, String text) async {
+    final url = Uri.parse("https://airdesk-server.onrender.com/api/desk/$code");
+
+    // Prepare the list of base64 images
+    List<String> imagesBase64 = [];
+    if (_pickedFiles.isNotEmpty) {
+      for (var file in _pickedFiles) {
+        String base64 = await fileToBase64(file);
+        imagesBase64.add(base64);
+      }
+    }
+
+    // Prepare the request body
+    final body = jsonEncode({
+      "code": code, // Adjust as needed
+      "text": text, // Use the text input
+      "images": imagesBase64,
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        // Handle success
+        final responseData = jsonDecode(response.body);
+        debugPrint('Success: $responseData');
+      } else {
+        // Handle server error
+        debugPrint('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Handle network error
+      debugPrint('Network error: $e');
+    }
+  }
 
   Future<String> fileToBase64(File file) async {
     final bytes = await file.readAsBytes();
@@ -138,7 +181,8 @@ class _ShareContainerState extends State<ShareContainer> {
                   Flexible(
                     child: SizedBox(
                       child: ListView.separated(
-                        separatorBuilder: (context, index) => const SizedBox(height: 10),
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 10),
                         itemCount: _pickedFiles.length,
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
@@ -156,19 +200,22 @@ class _ShareContainerState extends State<ShareContainer> {
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.left,
                                   maxLines: 4,
-                                  style: GoogleFonts.poppins(color: Colors.black, fontSize: 15),
+                                  style: GoogleFonts.poppins(
+                                      color: Colors.black, fontSize: 15),
                                 ),
                               ),
                               GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    _pickedFiles.removeAt(index); // Remove the file
+                                    _pickedFiles
+                                        .removeAt(index); // Remove the file
                                   });
                                 },
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(Icons.close, color: Colors.red, size: 19),
+                                    const Icon(Icons.close,
+                                        color: Colors.red, size: 19),
                                     Text(
                                       "Remove",
                                       style: GoogleFonts.poppins(
@@ -202,29 +249,29 @@ class _ShareContainerState extends State<ShareContainer> {
       right: 30,
       bottom: -25,
       child: GestureDetector(
-        onTap: () {
+        onTap: () async {
           if (shareController.text.isNotEmpty) {
             setState(() {
               _isLoading = true;
             });
 
             try {
-              Future.delayed(const Duration(seconds: 3), () async {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => QRDisplayPage(
-                      data: codeProvider.shareController.text, // Ensure base64String is not null
-                      code: codeProvider.generatedCode,
-                    ),
+              // Call the postData function
+              await postData(codeProvider.generatedCode, shareController.text);
+
+              // Navigate to the QRDisplayPage after posting
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => QRDisplayPage(
+                    data: shareController.text,
+                    code: codeProvider.generatedCode,
                   ),
-                );
-                setState(() {
-                  _isLoading = false;
-                });
-              });
+                ),
+              );
             } catch (e) {
               debugPrint("There has been an error submitting the form: $e");
+            } finally {
               setState(() {
                 _isLoading = false;
               });
@@ -260,7 +307,7 @@ class _ShareContainerState extends State<ShareContainer> {
   Widget _buildFilePreview(File file) {
     String fileExtension = file.path.split('.').last.toLowerCase();
 
-    if (['jpg', 'jpeg', 'png', 'gif'].contains(fileExtension)) {
+    if (['jpg', 'jpeg', 'png'].contains(fileExtension)) {
       return Container(
         height: 96,
         width: 96,
