@@ -18,7 +18,7 @@ class CodeContainer extends StatelessWidget {
         children: [
           Container(
             height: 60,
-            width: 130,
+            width: 150,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: const Color(0xffDFFCF8),

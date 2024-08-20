@@ -31,8 +31,7 @@ class AirDesk extends StatelessWidget {
       home: const StartUpPage(),
       // home: const QrDataPage(),
       theme: lightTheme,
-      darkTheme: darkTheme,
-      // themeMode: ThemeMode.light,
+      themeMode: ThemeMode.light,
     );
   }
 }
