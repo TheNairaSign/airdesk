@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:http/http.dart' as http;
 
 class CodeProvider extends ChangeNotifier {
   
@@ -27,11 +28,15 @@ class CodeProvider extends ChangeNotifier {
       ),
     );
   }
-  void generateCode() {
-    final uuid = const Uuid().v4(); // Generate a unique identifier
-    final code = getRandomString(6); // Generate the alphanumeric code
-      _generatedCode = code;
-      _qrData = jsonEncode({'uid': uuid, 'input': shareController.text});
-      _uid = uuid; // Store the UID for later use
+  void generateCode(String code) async {
+    final url = Uri.parse("https://airdesk-server.onrender.com/api/desk/$code");
+    final response = await http.get(url);
+    
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      // Extracting content, images, and code
+      var content = data["data"]["code"];
+      _generatedCode = content;
+}
 }
 }

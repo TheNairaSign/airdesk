@@ -21,28 +21,30 @@ class ShareContainer extends StatefulWidget {
 }
 
 class _ShareContainerState extends State<ShareContainer> {
-  File? _imageFile;
   bool _isLoading = false;
-  List<File> _pickedFiles = [];
-  String? base64String; // Declare globally to use later
+  final List<File> _pickedFiles = [];
+  String? base64String;
+  
+  Future<String> fileToBase64(File file) async {
+    final bytes = await file.readAsBytes();
+    return base64Encode(bytes);
+  } // Declare globally to use later
 
-  Future<void> postData(String code, String text) async {
-    final url = Uri.parse("https://airdesk-server.onrender.com/api/desk/$code");
+  Future<void> postData(BuildContext context) async {
+    final List<String> imagesBase64 = [];
 
-    // Prepare the list of base64 images
-    List<String> imagesBase64 = [];
-    if (_pickedFiles.isNotEmpty) {
-      for (var file in _pickedFiles) {
-        String base64 = await fileToBase64(file);
-        imagesBase64.add(base64);
-      }
-    }
+    for (var file in _pickedFiles) {
+    String base64 = await fileToBase64(file);
+    imagesBase64.add(base64);
+
+    final url = Uri.parse("https://airdesk-server.onrender.com/api/desk/");
+    final codeProvider = context.read<CodeProvider>();
+    final shareController = codeProvider.shareController;
 
     // Prepare the request body
     final body = jsonEncode({
-      "code": code, // Adjust as needed
-      "text": text, // Use the text input
-      "images": imagesBase64,
+      "content": shareController.text, 
+      "files": imagesBase64, 
     });
 
     try {
@@ -54,13 +56,45 @@ class _ShareContainerState extends State<ShareContainer> {
         body: body,
       );
 
+      // Log the full response for debugging
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
+      debugPrint('Response headers: ${response.headers}');
+
       if (response.statusCode == 200) {
         // Handle success
         final responseData = jsonDecode(response.body);
+        final generatedCode = responseData["data"]["code"];
+
+        if (shareController.text.isNotEmpty || _pickedFiles.isNotEmpty) {
+          setState(() {
+            _isLoading = true;
+          });
+
+          try {
+            // Navigate to the QRDisplayPage with the generated code
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => QRDisplayPage(
+                  data: shareController.text,
+                  code: generatedCode,
+                ),
+              ),
+            );
+          } catch (e) {
+            debugPrint("There has been an error submitting the form: $e");
+          } finally {
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        }
+
         debugPrint('Success: $responseData');
       } else {
         // Handle server error
-        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Error: ${response.statusCode}, Body: ${response.body}');
       }
     } catch (e) {
       // Handle network error
@@ -68,9 +102,7 @@ class _ShareContainerState extends State<ShareContainer> {
     }
   }
 
-  Future<String> fileToBase64(File file) async {
-    final bytes = await file.readAsBytes();
-    return base64Encode(bytes);
+
   }
 
   Future<void> _pickFiles() async {
@@ -242,44 +274,13 @@ class _ShareContainerState extends State<ShareContainer> {
   }
 
   Positioned _sendButton(BuildContext context) {
-    final codeProvider = context.read<CodeProvider>();
-    final shareController = codeProvider.shareController;
-
     return Positioned(
       right: 30,
       bottom: -25,
       child: GestureDetector(
         onTap: () async {
-          if (shareController.text.isNotEmpty) {
-            setState(() {
-              _isLoading = true;
-            });
-
-            try {
-              // Call the postData function
-              await postData(codeProvider.generatedCode, shareController.text);
-
-              // Navigate to the QRDisplayPage after posting
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => QRDisplayPage(
-                    data: shareController.text,
-                    code: codeProvider.generatedCode,
-                  ),
-                ),
-              );
-            } catch (e) {
-              debugPrint("There has been an error submitting the form: $e");
-            } finally {
-              setState(() {
-                _isLoading = false;
-              });
-            }
-
-            codeProvider.generateCode();
-          }
-        },
+          await postData(context);
+          },
         child: _isLoading
             ? Container(
                 height: 35,
