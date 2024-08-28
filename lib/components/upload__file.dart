@@ -1,3 +1,8 @@
+import 'dart:typed_data';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,7 +16,7 @@ class UploadFile extends StatefulWidget {
 }
 
 class _UploadFileState extends State<UploadFile> {
-
+  
   @override
   Widget build(BuildContext context) {
     return GestureDetector(

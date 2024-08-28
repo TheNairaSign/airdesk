@@ -30,7 +30,7 @@ class CodeContainer extends StatelessWidget {
             style: GoogleFonts.poppins(color: const Color(0xff166534), fontWeight: FontWeight.bold, fontSize: 25),)
           ),
           const SizedBox(width: 15),
-          Copy(textToCopy: cp.generatedCode,)
+          Copy(textToCopy: code,)
         ],
       ),
     );

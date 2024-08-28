@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:air_desk/api/api_service.dart';
+import 'package:http/http.dart' as http;
 import 'package:air_desk/pages/qr_data_page.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
@@ -16,10 +19,9 @@ class _QrScannerState extends State<QrScanner> {
   QRViewController? controller;
 
   void saveOrDisplayFile(File file) {
-  // For example, open the file with the appropriate app
-  OpenFile.open(file.path);
-}
-
+    // For example, open the file with the appropriate app
+    OpenFile.open(file.path);
+  }
 
   @override
   void reassemble() {
@@ -66,18 +68,41 @@ class _QrScannerState extends State<QrScanner> {
     setState(() {
       this.controller = controller;
     });
-    controller.scannedDataStream.listen((scanData) {
+    controller.scannedDataStream.listen((scanData) async {
       setState(() {
         result = scanData;
       });
       if (result != null) {
         controller.pauseCamera();
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => QrDataPage(data: result!.code),
-          ),
-        );
+        final res = result?.code;
+        final Uri uri = Uri.parse(res!);
+        String lastSegment = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : '';
+        debugPrint(result!.code.toString());
+        debugPrint(lastSegment);
+        controller.pauseCamera();
+        final url = 'https://airdesk-server.onrender.com/api/desk/$lastSegment';
+        final response = await http.get(Uri.parse(url));
+
+        if (response.statusCode == 200) {
+          var data = jsonDecode(response.body);
+          debugPrint(data.toString());
+          final ApiService apiService = ApiService();
+          final airdeskData = await apiService.getdata(lastSegment, context);
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => QrDataPage(
+                data: jsonEncode(lastSegment),
+                content: airdeskData.text,
+                imageUrl: airdeskData.imageUrl,
+                fileName: airdeskData.imageName,
+                imageLength: airdeskData.images.length,
+                file: airdeskData.images
+              ),
+            ),
+          );
+        }
       }
     });
   }
