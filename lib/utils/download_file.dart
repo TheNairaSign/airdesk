@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:air_desk/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,7 +32,7 @@ class FileDownload {
       debugPrint("Download Successful");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: const Color(0xffDFFCF8),
+          backgroundColor: primaryGreen,
           content: Text("Downloaded All", style: GoogleFonts.poppins(color: Colors.black)),
           duration: const Duration(seconds: 4),
           behavior: SnackBarBehavior.floating,

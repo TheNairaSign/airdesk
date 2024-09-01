@@ -1,8 +1,4 @@
-import 'dart:typed_data';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-
-
+import 'package:air_desk/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,7 +24,7 @@ class _UploadFileState extends State<UploadFile> {
         children: [
         SvgPicture.asset("assets/svg/files-alt.svg"),
         const SizedBox(width: 5),
-        Text("Upload Files", style: GoogleFonts.poppins(color: const Color(0xff006CFF)),),
+        Text("Upload Files", style: GoogleFonts.poppins(color: primaryBlue),),
         const Spacer(),
       ],),
     );

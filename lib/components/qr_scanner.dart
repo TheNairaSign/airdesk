@@ -1,11 +1,18 @@
+// ignore_for_file: unused_import
+import 'package:air_desk/providers/share_provider.dart';
+import 'package:flutter/material.dart';
+
 import 'dart:convert';
 import 'dart:io';
-import 'package:air_desk/api/api_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:air_desk/pages/qr_data_page.dart';
-import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
+import 'package:provider/provider.dart';
+
+import 'package:air_desk/api/api_service.dart';
+import 'package:air_desk/pages/data_page/qr_data_page.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+
+import '../providers/view_provider.dart';
 
 class QrScanner extends StatefulWidget {
   const QrScanner({super.key});
@@ -48,15 +55,9 @@ class _QrScannerState extends State<QrScanner> {
           Expanded(
             flex: 1,
             child: Center(
-              child: (result != null)
-                  ? Text(
-                      'Barcode Type: ${result!.format}   Data: ${result!.code}',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    )
-                  : Text(
-                      'Scan a code',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
+              child: (result != null) 
+                ? Text('Barcode Type: ${result!.format} Data: ${result!.code}', style: Theme.of(context).textTheme.bodyLarge) 
+                : Text('Scan a code', style: Theme.of(context).textTheme.bodyLarge),
             ),
           )
         ],
@@ -65,6 +66,7 @@ class _QrScannerState extends State<QrScanner> {
   }
 
   void _onQRViewCreated(QRViewController controller) {
+    final apiProv = context.read<ViewProvider>();
     setState(() {
       this.controller = controller;
     });
@@ -80,29 +82,7 @@ class _QrScannerState extends State<QrScanner> {
         debugPrint(result!.code.toString());
         debugPrint(lastSegment);
         controller.pauseCamera();
-        final url = 'https://airdesk-server.onrender.com/api/desk/$lastSegment';
-        final response = await http.get(Uri.parse(url));
-
-        if (response.statusCode == 200) {
-          var data = jsonDecode(response.body);
-          debugPrint(data.toString());
-          final ApiService apiService = ApiService();
-          final airdeskData = await apiService.getdata(lastSegment, context);
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => QrDataPage(
-                data: jsonEncode(lastSegment),
-                content: airdeskData.text,
-                imageUrl: airdeskData.imageUrl,
-                fileName: airdeskData.imageName,
-                imageLength: airdeskData.images.length,
-                file: airdeskData.images
-              ),
-            ),
-          );
-        }
+        apiProv.fetchData(context, lastSegment);
       }
     });
   }

@@ -1,4 +1,5 @@
-import 'package:air_desk/pages/main_page.dart';
+import 'package:air_desk/pages/main_page/main_page.dart';
+import 'package:air_desk/pages/navigation/navigation_page.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +14,7 @@ class _StartUpPageState extends State<StartUpPage> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 5), () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const MainPage())));
+    Future.delayed(const Duration(seconds: 5), () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const NavigationPage())));
   }
   @override
   Widget build(BuildContext context) {

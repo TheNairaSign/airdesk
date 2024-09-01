@@ -1,8 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:air_desk/provider/code_provider.dart';
+import 'package:air_desk/providers/share_provider.dart';
 import 'package:air_desk/widgets/airdesk_and_logo.dart';
-import 'package:air_desk/widgets/code_container.dart';
+import 'package:air_desk/pages/main_page/widgets/code_container.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -14,7 +14,7 @@ class QRDisplayPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cp = context.read<CodeProvider>();
+    final cp = context.read<ShareProvider>();
     final shareController = cp.shareController;
     return WillPopScope(
       onWillPop: () async {
@@ -23,6 +23,7 @@ class QRDisplayPage extends StatelessWidget {
       },
       child: SafeArea(
         child: Scaffold(
+          appBar: AppBar(elevation: 0,),
           body: Column(
             mainAxisSize: MainAxisSize.max,
             children: [

@@ -1,6 +1,6 @@
 import 'package:air_desk/widgets/airdesk_and_logo.dart';
-import 'package:air_desk/widgets/share_container.dart';
-import 'package:air_desk/widgets/view_container.dart';
+import 'package:air_desk/pages/main_page/widgets/share_container.dart';
+import 'package:air_desk/pages/main_page/widgets/view_container.dart';
 import 'package:flutter/material.dart';
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
