@@ -1,4 +1,4 @@
-package com.example.air_desk
+package com.example.Airdesk
 
 import io.flutter.embedding.android.FlutterActivity
 

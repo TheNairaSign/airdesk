@@ -1,3 +1,4 @@
+import 'package:air_desk/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,7 +12,7 @@ class UploadFile extends StatefulWidget {
 }
 
 class _UploadFileState extends State<UploadFile> {
-
+  
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -23,7 +24,7 @@ class _UploadFileState extends State<UploadFile> {
         children: [
         SvgPicture.asset("assets/svg/files-alt.svg"),
         const SizedBox(width: 5),
-        Text("Upload Files", style: GoogleFonts.poppins(color: const Color(0xff006CFF)),),
+        Text("Upload Files", style: GoogleFonts.poppins(color: primaryBlue),),
         const Spacer(),
       ],),
     );
