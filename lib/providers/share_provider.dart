@@ -38,10 +38,10 @@ class ShareProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void clearFiles(BuildContext context) {
-    final codeProvider = context.read<ShareProvider>();
-    final pickedFiles = codeProvider.file;
-    pickedFiles.clear();
+  void clearFiles() {
+    // final codeProvider = context.read<ShareProvider>();
+    // final pickedFiles = codeProvider.file;
+    _file.clear();
     notifyListeners();
   }
 
