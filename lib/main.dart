@@ -22,7 +22,6 @@ void main() {
       ],
       child: const AirDesk(),
     ),
-    
   );
 }
 
