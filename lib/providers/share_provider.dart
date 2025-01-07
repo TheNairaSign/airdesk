@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:air_desk/providers/view_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -47,15 +48,13 @@ class ShareProvider extends ChangeNotifier {
 
   Future<void> postData(BuildContext context) async {
     final url = Uri.parse("https://airdesk-server.onrender.com/api/desk/dynamic");
-    final codeProvider = context.read<ShareProvider>();
-    final shareController = codeProvider.shareController;
-    final pickedFiles = codeProvider.file;
+    final codeProvider = context.read<ViewProvider>();
 
     // Add text content to the request
     var request = http.MultipartRequest('POST', url);
-    request.fields['content'] = shareController.text;
+    request.fields['content'] = codeProvider.viewController.text;
 
-    for (var file in pickedFiles) {
+    for (var file in _file) {
       debugPrint("Entering Loop");
       request.files.add(
         await http.MultipartFile.fromPath(

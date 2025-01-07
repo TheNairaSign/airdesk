@@ -1,10 +1,11 @@
 import 'package:air_desk/constants.dart';
+import 'package:air_desk/providers/share_provider.dart';
+import 'package:air_desk/providers/view_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
-import '../../../providers/share_provider.dart';
 
 class SendButton extends StatelessWidget {
   const SendButton({super.key});
@@ -18,17 +19,20 @@ class SendButton extends StatelessWidget {
     size: 15,
   );
 
-    return Consumer<ShareProvider>(
-      builder: (context, shareProvider, child) {
+    return Consumer<ViewProvider>(
+      builder: (context, viewProvider, child) {
+        final shareProv = Provider.of<ShareProvider>(context, listen: false);
         return Positioned(
           right: 30,
           bottom: -25,
           child: GestureDetector(
-            onTap: shareProvider.isLoading ? null : () async {
+            onTap: viewProvider.isLoading ? null : () async {
               debugPrint("Sending Data");
-              await shareProvider.postData(context);
+              if(viewProvider.viewController.text.isNotEmpty || shareProv.file.isNotEmpty) {
+                await viewProvider.fetchOrShareData(context, viewProvider.viewController.text);
+                }
             },
-            child: shareProvider.isLoading
+            child: viewProvider.isLoading
                 ? Container(
                     height: 35,
                     width: 60,

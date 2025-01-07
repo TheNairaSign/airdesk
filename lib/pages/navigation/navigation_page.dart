@@ -31,6 +31,7 @@ class _NavigationPageState extends State<NavigationPage> {
     return Scaffold(
       body: pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
         elevation: 0,
         currentIndex: _currentIndex,
         unselectedIconTheme: const IconThemeData(color: Colors.black, size: 30),
