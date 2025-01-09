@@ -3,11 +3,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../model/history_model.dart';
 import '../pages/qr_display_page.dart';
@@ -41,12 +43,15 @@ class ShareProvider extends ChangeNotifier {
 
   void clearFiles(BuildContext context) {
     final codeProvider = context.read<ShareProvider>();
+    final receiveFileProvider = context.read<ReceiveFileProvider>();
+    final sharedFile = receiveFileProvider.sharedFiles;
     final pickedFiles = codeProvider.file;
     pickedFiles.clear();
+    sharedFile.clear();
     notifyListeners();
   }
 
-  Future<void> postData(BuildContext context) async {
+  Future<void> postData(BuildContext context, List<SharedMediaFile> sharedFiles) async {
     final url = Uri.parse("https://airdesk-server.onrender.com/api/desk/dynamic");
     final codeProvider = context.read<ViewProvider>();
 
@@ -54,34 +59,48 @@ class ShareProvider extends ChangeNotifier {
     var request = http.MultipartRequest('POST', url);
     request.fields['content'] = codeProvider.viewController.text;
 
+    // Handle locally picked files
     for (var file in _file) {
-      debugPrint("Entering Loop");
+      debugPrint("Adding local file");
       request.files.add(
         await http.MultipartFile.fromPath(
-        'files',
-        file.path,
-      ));
-      debugPrint(request.toString());
+          'files',
+          file.path,
+        ),
+      );
       debugPrint("File path: ${file.path}");
+    }
+
+    // Handle shared files
+    for (var sharedFile in sharedFiles) {
+      debugPrint("Adding shared file");
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'files',
+          sharedFile.path,
+        ),
+      );
+      debugPrint("Shared file path: ${sharedFile.path}");
     }
 
     try {
       _isLoading = true;
       notifyListeners();
-      debugPrint(request.fields.toString());
+      debugPrint("Request fields: ${request.fields}");
+      debugPrint("Total files to upload: ${request.files.length}");
 
       // Send the request and get the response
       var response = await request.send();
-      debugPrint(response.statusCode.toString());
+      debugPrint("Response status code: ${response.statusCode}");
       debugPrint("Request Response: ${response.request}");
 
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
         final responseData = jsonDecode(responseBody);
         debugPrint("Status: $responseBody");
+        
         clearFiles(context);
         final generatedCode = responseData["data"]["code"];
-        // final myCode = generatedCode.replaceAll("", '');
 
         addNewHistoryItem(context, generatedCode, responseData);
 
@@ -105,10 +124,10 @@ class ShareProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Network error: $e');
     } finally {
-        _isLoading = false;
+      _isLoading = false;
+      notifyListeners();
     }
-    notifyListeners();
-  }
+}
 
   void addNewHistoryItem(BuildContext context, String generatedCode, Map<String, dynamic> responseData) async {
     debugPrint("Adding new history item");

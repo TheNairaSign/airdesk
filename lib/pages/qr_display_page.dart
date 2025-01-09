@@ -23,9 +23,9 @@ class QRDisplayPage extends StatelessWidget {
       },
       child: SafeArea(
         child: Scaffold(
-          appBar: AppBar(elevation: 0,),
-          body: Column(
-            mainAxisSize: MainAxisSize.max,
+          appBar: AppBar(elevation: 0, forceMaterialTransparency: true),
+          body: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             children: [
               const AirdeskAndLogo(),
               const SizedBox(height: 30),

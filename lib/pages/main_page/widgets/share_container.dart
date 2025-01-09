@@ -150,7 +150,7 @@ class _ShareContainerState extends State<ShareContainer> {
                   ],
                 ),
               ),
-              const SendButton(),
+              // const SendButton(),
             ],
           ),
         );

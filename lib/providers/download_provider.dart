@@ -3,10 +3,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-import '../api/api_service.dart';
 import '../utils/download_file.dart';
-import '../model/image_model.dart';
-import '../utils/get_file_path.dart';
 import '../utils/snack_bar.dart';
 
 class DownloadProvider extends ChangeNotifier {

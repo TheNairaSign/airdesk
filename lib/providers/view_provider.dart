@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 
+import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -67,6 +68,7 @@ class ViewProvider extends ChangeNotifier {
 
     Future<void> fetchOrShareData(BuildContext context, String deskId) async {
     // showLoadingDialog(context);
+    FocusScope.of(context).unfocus();
     final url = 'https://airdesk-server.onrender.com/api/desk/$deskId';
     try {
       _isLoading = true;
@@ -103,7 +105,10 @@ class ViewProvider extends ChangeNotifier {
       } else {
         // Navigator.of(context).pop(); // Close the loading dialog
         final shareProvider = Provider.of<ShareProvider>(context, listen: false);
-        shareProvider.postData(context);
+        final receiveProvider = context.read<ReceiveFileProvider>();
+        final sharedFile = receiveProvider.sharedFiles;
+
+        shareProvider.postData(context, sharedFile);
         // showErrorDialog(context);
       }
     } catch (e) {

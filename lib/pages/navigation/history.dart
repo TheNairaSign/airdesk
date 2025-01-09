@@ -29,19 +29,17 @@ class _HistoryPageState extends State<HistoryPage> {
     return Scaffold(
       body: Consumer<HistoryProvider>(
         builder: (context, historyProvider, child) {
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 40, left: 15, right: 15, bottom: 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const AirdeskAndLogo(),
-                  const SizedBox(height: 30),
-                  historyProvider.historyItems.isNotEmpty 
-                  ? const HistoryContainer() 
-                  : Center(child: Text("No share history", style: GoogleFonts.poppins(color: Colors.black, fontSize: 25),),),
-                ],
-              ),
+          return Padding(
+            padding: const EdgeInsets.only(top: 30, left: 15, right: 15, bottom: 40),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const AirdeskAndLogo(),
+                const SizedBox(height: 30),
+                historyProvider.historyItems.isNotEmpty 
+                ? const HistoryContainer() 
+                : Center(child: Text("No share history", style: GoogleFonts.poppins(color: Colors.black, fontSize: 25),),),
+              ],
             ),
           );
         }

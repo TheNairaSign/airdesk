@@ -1,5 +1,6 @@
 import 'package:air_desk/pages/startup_page.dart';
 import 'package:air_desk/providers/history_provider.dart';
+import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
 import 'package:air_desk/themes/light_theme.dart';
@@ -26,7 +27,8 @@ void main() {
         ChangeNotifierProvider(create: (context) => ShareProvider()),
         ChangeNotifierProvider(create: (context) => ViewProvider()),
         ChangeNotifierProvider(create: (context) => DownloadProvider()),
-        ChangeNotifierProvider(create: (context) => HistoryProvider())
+        ChangeNotifierProvider(create: (context) => HistoryProvider()),
+        ChangeNotifierProvider(create: (context) => ReceiveFileProvider()),
       ],
       child: const AirDesk(),
     ),

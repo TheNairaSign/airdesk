@@ -11,7 +11,7 @@ class AirdeskAndLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(top: top, bottom: 40),
+      padding: EdgeInsets.only(top: top, bottom: 30),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

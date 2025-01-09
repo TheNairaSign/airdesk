@@ -11,110 +11,116 @@ import 'package:provider/provider.dart';
 import '../../../providers/view_provider.dart';
 
 class ViewContainer extends StatelessWidget {
-  const ViewContainer({super.key});
+  const ViewContainer({
+    super.key, 
+    // required this.sharedMediaFile,
+    });
+  // final List<SharedMediaFile> sharedMediaFile;
 
   final String text = "Input Content to share or [desk code] to view";
 
-  String colorText() {
-    Text(text, style: GoogleFonts.poppins(color: Colors.blue, fontSize: 16));
-    return text;
-  }
-
   @override
   Widget build(BuildContext context) {
-    const borderColor =  Color.fromRGBO(0, 108, 255, 0.1);
+    const borderColor = Color.fromRGBO(0, 108, 255, 0.1);
     const borderWidth = 2.0;
 
+    final size = MediaQuery.of(context).size;
+    final double width = size.width;
+
     return Consumer<ViewProvider>(builder: (context, viewProvider, child) {
-      return Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            height: 400,
-            // margin: const EdgeInsets.symmetric(horizontal: 10),
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: borderColor, width: borderWidth),
-              borderRadius: const BorderRadius.all(Radius.circular(20)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                      Flexible(
-                        child: TextField(
-                          controller: viewProvider.viewController,
-                          textDirection: TextDirection.ltr,
-                          keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.transparent,
-                            hintText: "Share or View Desk",
-                            hintStyle: GoogleFonts.poppins(
-                              color: Colors.grey[700],
-                              fontSize: 20,
-                            ),
-                            border: InputBorder.none,
-                            enabled: true,
-                            isDense: true,
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
+      final FocusNode focusNode = FocusNode();
+      return GestureDetector(
+        onTap: () {
+          focusNode.requestFocus(); // Focus the TextField when the container is tapped
+        },
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            
+            Container(
+              height: 400,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: borderColor, width: borderWidth),
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: width * 0.7,
+                    child: TextField(
+                      focusNode: focusNode, // Use the FocusNode here
+                      controller: viewProvider.viewController,
+                      textDirection: TextDirection.ltr,
+                      keyboardType: TextInputType.multiline,
+                      maxLines: null,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.transparent,
+                        hintText: "Share or View Desk",
+                        hintStyle: GoogleFonts.poppins(
+                          color: Colors.grey[700],
+                          fontSize: 20,
                         ),
+                        border: InputBorder.none,
+                        enabled: true,
+                        isDense: true,
+                        enabledBorder: InputBorder.none,
                       ),
-                    GestureDetector(
-                      onTap: () {
-                        debugPrint("QR Scanner");
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const QrScanner(),
-                          ),
-                        );
-                      },
-                      child: SvgPicture.asset("assets/svg/qr-scan.svg"),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: RichText(
-                    maxLines: 2,
-                    text: TextSpan(
-                      text: '', // The base text is empty
-                      style: DefaultTextStyle.of(context).style, // Default styling
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: 'Input Content to ',
-                          style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 16),
-                        ),
-                        TextSpan(
-                          text: 'share',
-                          style: GoogleFonts.poppins(color: primaryBlue, fontSize: 16),
-                        ),
-                        TextSpan(
-                          text: ' or [desk code] to ',
-                          style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 16),
-                        ),
-                        TextSpan(
-                          text: 'view',
-                          style: GoogleFonts.poppins(color: const Color(0xff219c8e), fontSize: 16),
-                        ),
-                      ],
                     ),
                   ),
-                ),
-              ],
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: RichText(
+                      maxLines: 2,
+                      text: TextSpan(
+                        text: '',
+                        style: DefaultTextStyle.of(context).style,
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: 'Input Content to ',
+                            style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 16),
+                          ),
+                          TextSpan(
+                            text: 'share',
+                            style: GoogleFonts.poppins(color: primaryBlue, fontSize: 16),
+                          ),
+                          TextSpan(
+                            text: ' or [desk code] to ',
+                            style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 16),
+                          ),
+                          TextSpan(
+                            text: 'view',
+                            style: GoogleFonts.poppins(color: const Color(0xff219c8e), fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SendButton(),
-        ],
+            Positioned(
+              top: 20, // Adjust based on desired placement
+              right: 15,
+              child: GestureDetector(
+                onTap: () {
+                  debugPrint("QR Scanner");
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const QrScanner(),
+                    ),
+                  );
+                },
+                child: SvgPicture.asset("assets/svg/qr-scan.svg"),
+              ),
+            ),
+            const SendButton(),
+          ],
+        ),
       );
     });
   }

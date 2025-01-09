@@ -1,4 +1,5 @@
-import 'package:air_desk/pages/main_page/main_page.dart';
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:air_desk/pages/navigation/navigation_page.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
