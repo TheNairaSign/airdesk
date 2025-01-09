@@ -25,8 +25,7 @@ class ContentContainer extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.arrow_downward, size: 17, color: Colors.grey[700]),
-              Text('Content',
-                  style: GoogleFonts.poppins(color: Colors.grey[700])),
+              Text('Content',style: GoogleFonts.poppins(color: Colors.grey[700])),
             ],
           ),
           const Divider(color: Colors.grey),
@@ -34,7 +33,7 @@ class ContentContainer extends StatelessWidget {
           if (content != null)
             Text(
               content!,
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
             )
           else
             Center(

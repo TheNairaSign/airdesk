@@ -24,77 +24,77 @@ class FileDisplayContainer extends StatelessWidget {
     CustomFileType fileType = CustomFileType();
     Widget content = fileType.isImageFile(uri.toString())
       ? ListView.separated(
-              separatorBuilder: (context, index) => const SizedBox(height: 10),
-              itemCount: imageLength!,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                final url = files[index].url;
-                final fileName = files[index].originalName;
-                return Container(
-                  padding: const EdgeInsets.all(10),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: primaryGreen,
-            borderRadius: BorderRadius.circular(10),
+          separatorBuilder: (context, index) => const SizedBox(height: 10),
+          itemCount: imageLength!,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            final url = files[index].url;
+            final fileName = files[index].originalName;
+            return Container(
+              padding: const EdgeInsets.all(10),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: primaryGreen,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          FilePreviewContainer(url: url, uri: uri),
+          const SizedBox(
+            width: 10,
           ),
-                  child: Row(
-                    children: [
-                      FilePreviewContainer(url: url, uri: uri),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Expanded(
-                        child: Text(
-                          fileName,
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.left,
-                          maxLines: 4,
-                          style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
-                        ),
-                      ),
-                      const Spacer(),
-                      DownloadFile(
-                        index: index,
-                        // file: files,
-                        imageLength: imageLength,
-                        url: url,
-                        fileName: fileName,
-                      ),
-                    ],
-                  ),
-                );
-              })
-      : Container(
-          height: 110,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: primaryGreen,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Center(
+          Expanded(
             child: Text(
-              imageUrl ?? 'No data',
-              style: Theme.of(context).textTheme.bodyLarge,
+              fileName,
+              softWrap: true,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.left,
+              maxLines: 4,
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
             ),
           ),
-        );
+          const Spacer(),
+          DownloadFile(
+            index: index,
+            // file: files,
+            imageLength: imageLength,
+            url: url,
+            fileName: fileName,
+          ),
+        ],
+      ),
+    );
+  })
+  : Container(
+      height: 110,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: primaryGreen,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Center(
+        child: Text(
+          imageUrl ?? 'No data',
+          style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
+        ),
+      ),
+    );
 
   Widget body = uri != null && uri!.isAbsolute ? content : Container(
-          height: 110,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: primaryGreen,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Center(
-            child: Text(
-              imageUrl ?? 'No data',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ),
-        );
+    height: 110,
+    width: double.infinity,
+    decoration: BoxDecoration(
+      color: primaryGreen,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Center(
+      child: Text(
+        imageUrl ?? 'No data',
+        style: Theme.of(context).textTheme.bodyLarge,
+      ),
+    ),
+  );
   return body;
   }
 }
