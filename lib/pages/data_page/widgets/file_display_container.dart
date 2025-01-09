@@ -23,15 +23,7 @@ class FileDisplayContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     CustomFileType fileType = CustomFileType();
     Widget content = fileType.isImageFile(uri.toString())
-      ? Container(
-          // height: 110,
-          padding: const EdgeInsets.all(10),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: primaryGreen,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: ListView.separated(
+      ? ListView.separated(
               separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemCount: imageLength!,
               shrinkWrap: true,
@@ -39,33 +31,41 @@ class FileDisplayContainer extends StatelessWidget {
               itemBuilder: (context, index) {
                 final url = files[index].url;
                 final fileName = files[index].originalName;
-                return Row(
-                  children: [
-                    FilePreviewContainer(url: url, uri: uri),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Expanded(
-                      child: Text(
-                        fileName,
-                        softWrap: true,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.left,
-                        maxLines: 4,
-                        style: Theme.of(context).textTheme.bodyLarge,
+                return Container(
+                  padding: const EdgeInsets.all(10),
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: primaryGreen,
+            borderRadius: BorderRadius.circular(10),
+          ),
+                  child: Row(
+                    children: [
+                      FilePreviewContainer(url: url, uri: uri),
+                      const SizedBox(
+                        width: 10,
                       ),
-                    ),
-                    const Spacer(),
-                    DownloadFile(
-                      index: index,
-                      // file: files,
-                      imageLength: imageLength,
-                      url: url,
-                      fileName: fileName,
-                    ),
-                  ],
+                      Expanded(
+                        child: Text(
+                          fileName,
+                          softWrap: true,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.left,
+                          maxLines: 4,
+                          style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
+                        ),
+                      ),
+                      const Spacer(),
+                      DownloadFile(
+                        index: index,
+                        // file: files,
+                        imageLength: imageLength,
+                        url: url,
+                        fileName: fileName,
+                      ),
+                    ],
+                  ),
                 );
-              }))
+              })
       : Container(
           height: 110,
           width: double.infinity,

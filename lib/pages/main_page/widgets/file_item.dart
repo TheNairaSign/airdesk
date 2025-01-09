@@ -23,7 +23,7 @@ class FileItem extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.left,
           maxLines: 4,
-          style: GoogleFonts.poppins(color: Colors.black, fontSize: 15),
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
       ),
       GestureDetector(

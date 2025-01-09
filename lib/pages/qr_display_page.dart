@@ -28,11 +28,11 @@ class QRDisplayPage extends StatelessWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
               const AirdeskAndLogo(),
-              const SizedBox(height: 30),
+              const SizedBox(height: 10),
               Center(
                 child: CodeContainer(code: code,)
                 ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
               Container(
                 width: 360,
                 height: 360,
@@ -51,7 +51,7 @@ class QRDisplayPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              Text("Scan QR code to view content on your device", style: Theme.of(context).textTheme.bodyLarge),
+              Center(child: Text("Scan QR code to view content on your device", style: Theme.of(context).textTheme.bodyLarge)),
             ],
           ),
         ),

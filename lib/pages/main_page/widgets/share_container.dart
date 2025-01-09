@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:air_desk/components/upload__file.dart';
 import 'package:air_desk/providers/share_provider.dart';
-import 'package:air_desk/pages/main_page/widgets/send_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';

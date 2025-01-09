@@ -3,6 +3,7 @@ import 'package:air_desk/providers/history_provider.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
+import 'package:air_desk/themes/dark_theme.dart';
 import 'package:air_desk/themes/light_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,13 +14,6 @@ import 'providers/download_provider.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.white,
-    statusBarIconBrightness: Brightness.dark,
-    systemNavigationBarColor: Colors.white,
-    systemNavigationBarIconBrightness: Brightness.dark,
-    systemStatusBarContrastEnforced: true,
-    ));
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(
     MultiProvider(
@@ -44,7 +38,24 @@ class AirDesk extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: const StartUpPage(),
       theme: lightTheme,
-      themeMode: ThemeMode.light,
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.system,
+      builder: (context, child) {
+        final brightness = MediaQuery.of(context).platformBrightness;
+        final isDarkMode = brightness == Brightness.dark;
+
+        final scaffoldColor = Theme.of(context).scaffoldBackgroundColor;
+
+        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+          statusBarColor: scaffoldColor,
+          statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+          systemNavigationBarColor: scaffoldColor,
+          systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+          systemStatusBarContrastEnforced: true,
+        ));
+
+        return child!;
+      },
     );
   }
 }
