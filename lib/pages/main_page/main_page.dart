@@ -35,13 +35,13 @@ class _MainPageState extends State<MainPage> {
         body: Consumer<ShareProvider>(
           builder: (context, cP, child) {
             return Padding(
-              padding: const EdgeInsets.only(top: 30, left: 20, right: 20, bottom: 40),
+              padding: const EdgeInsets.only(top: 10, left: 20, right: 20, bottom: 40),
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   const AirdeskAndLogo(),
                   Padding(
-                    padding: const EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 40),
+                    padding: const EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 30),
                     child: Text(
                       "Share links, texts and files between devices and people instantly.",
                       textAlign: TextAlign.center,

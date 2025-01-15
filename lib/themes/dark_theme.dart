@@ -8,5 +8,7 @@ final darkTheme = ThemeData.dark().copyWith(
     headlineLarge: GoogleFonts.poppins(color: Colors.white),
     bodyLarge: GoogleFonts.poppins(color: Colors.white),
     headlineSmall: GoogleFonts.poppins(color: Colors.grey),
-  )
+  ),
+  cardColor: Colors.grey,
+  shadowColor: Colors.white,
 );

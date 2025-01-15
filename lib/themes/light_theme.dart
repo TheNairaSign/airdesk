@@ -8,5 +8,7 @@ final lightTheme = ThemeData().copyWith(
     headlineLarge: GoogleFonts.poppins(color: Colors.black),
     headlineSmall: GoogleFonts.poppins(color: const Color(0xff14532D),),
     bodyLarge:  GoogleFonts.poppins(color: Colors.black),
-  )
+  ),
+  cardColor: Colors.white,
+  shadowColor: const Color.fromRGBO(0, 108, 255, 0.1)
 );

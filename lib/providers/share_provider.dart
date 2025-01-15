@@ -36,7 +36,8 @@ class ShareProvider extends ChangeNotifier {
     );
 
     if (result != null) {
-      _file = result.paths.map((path) => File(path!)).toList();
+      final newFiles = result.paths.map((path) => File(path!)).toList();
+      _file.addAll(newFiles);
     }
     notifyListeners();
   }

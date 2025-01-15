@@ -91,7 +91,7 @@ class FileDisplayContainer extends StatelessWidget {
     child: Center(
       child: Text(
         imageUrl ?? 'No data',
-        style: Theme.of(context).textTheme.bodyLarge,
+        style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
       ),
     ),
   );
