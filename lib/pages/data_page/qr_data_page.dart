@@ -64,7 +64,8 @@ class _QrDataPageState extends State<QrDataPage> {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    Text("Image Attachments",
+                    Text(
+                      "Image Attachments",
                         style: Theme.of(context)
                             .textTheme
                             .bodyLarge!

@@ -11,11 +11,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/view_provider.dart';
 
 class ViewContainer extends StatelessWidget {
-  const ViewContainer({
-    super.key, 
-    // required this.sharedMediaFile,
-    });
-  // final List<SharedMediaFile> sharedMediaFile;
+  const ViewContainer({super.key});
 
   final String text = "Input Content to share or [desk code] to view";
 
@@ -36,7 +32,6 @@ class ViewContainer extends StatelessWidget {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            
             Container(
               height: 400,
               padding: const EdgeInsets.all(10),
@@ -62,7 +57,7 @@ class ViewContainer extends StatelessWidget {
                         hintText: "Share or View Desk",
                         hintStyle: GoogleFonts.poppins(
                           color: Colors.grey[700],
-                          fontSize: 20,
+                          fontSize: 17,
                         ),
                         border: InputBorder.none,
                         enabled: true,
@@ -73,7 +68,7 @@ class ViewContainer extends StatelessWidget {
                   ),
                   const Spacer(),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                     child: RichText(
                       maxLines: 2,
                       text: TextSpan(
@@ -82,19 +77,19 @@ class ViewContainer extends StatelessWidget {
                         children: <TextSpan>[
                           TextSpan(
                             text: 'Input Content to ',
-                            style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 16),
+                            style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 15),
                           ),
                           TextSpan(
                             text: 'share',
-                            style: GoogleFonts.poppins(color: primaryBlue, fontSize: 16),
+                            style: GoogleFonts.poppins(color: primaryBlue, fontSize: 15),
                           ),
                           TextSpan(
                             text: ' or [desk code] to ',
-                            style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 16),
+                            style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 15),
                           ),
                           TextSpan(
                             text: 'view',
-                            style: GoogleFonts.poppins(color: const Color(0xff219c8e), fontSize: 16),
+                            style: GoogleFonts.poppins(color: const Color(0xff219c8e), fontSize: 15),
                           ),
                         ],
                       ),
@@ -105,7 +100,7 @@ class ViewContainer extends StatelessWidget {
             ),
             Positioned(
               top: 20, // Adjust based on desired placement
-              right: 15,
+              right: 25,
               child: GestureDetector(
                 onTap: () {
                   debugPrint("QR Scanner");

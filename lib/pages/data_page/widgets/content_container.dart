@@ -25,7 +25,7 @@ class ContentContainer extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.arrow_downward, size: 17, color: Colors.grey[700]),
-              Text('Content',style: GoogleFonts.poppins(color: Colors.grey[700])),
+              Text('Content', style: GoogleFonts.poppins(color: Colors.grey[700])),
             ],
           ),
           const Divider(color: Colors.grey),

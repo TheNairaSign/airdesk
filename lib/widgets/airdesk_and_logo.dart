@@ -16,9 +16,7 @@ class AirdeskAndLogo extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(height: size, width: size, child: Image.asset(img)),
-          const SizedBox(
-            width: 15,
-          ),
+          const SizedBox(width: 15),
           Text(
             "airdesk",
             style: Theme.of(context)
@@ -26,7 +24,7 @@ class AirdeskAndLogo extends StatelessWidget {
                 .headlineLarge!
                 .copyWith(fontWeight: FontWeight.bold,
                 ),
-            textScaleFactor: 1.3,
+            textScaleFactor: 1.2,
           ),
         ],
       ),

@@ -22,8 +22,8 @@ class SendButton extends StatelessWidget {
       builder: (context, viewProvider, child) {
         final shareProv = Provider.of<ShareProvider>(context, listen: false);
         return Positioned(
-          right: 15,
-          bottom: -25,
+          right: 25,
+          bottom: -35,
           child: Consumer<ReceiveFileProvider>(
             builder: (context, rp, child) {
               return GestureDetector(
@@ -31,7 +31,7 @@ class SendButton extends StatelessWidget {
                   debugPrint("Sending Data");
                   if(viewProvider.viewController.text.isNotEmpty || shareProv.file.isNotEmpty || rp.sharedFiles.isNotEmpty) {
                     await viewProvider.fetchOrShareData(context, viewProvider.viewController.text.trim());
-                    }
+                  }
                 },
                 child: viewProvider.isLoading
                     ? Container(

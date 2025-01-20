@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:air_desk/components/upload__file.dart';
+import 'package:air_desk/pages/main_page/widgets/about.dart';
 import 'package:air_desk/pages/main_page/widgets/file_item.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
 import 'package:air_desk/widgets/airdesk_and_logo.dart';
 import 'package:air_desk/pages/main_page/widgets/view_container.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -32,10 +34,24 @@ class _MainPageState extends State<MainPage> {
     final _sharedFiles = receiveProvider.sharedFiles;
     return SafeArea(
       child: Scaffold(
+        appBar: AppBar(
+          forceMaterialTransparency: true,
+          actions: [
+            Text("How it works", style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16)),
+            GestureDetector(
+              onTap: () {},
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                height: 25,
+                width: 25,
+                child: SvgPicture.asset("assets/svg/twitter.svg")),
+            ),
+          ],
+        ),
         body: Consumer<ShareProvider>(
           builder: (context, cP, child) {
             return Padding(
-              padding: const EdgeInsets.only(top: 10, left: 20, right: 20, bottom: 40),
+              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 40),
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
@@ -48,7 +64,7 @@ class _MainPageState extends State<MainPage> {
                       style: Theme.of(context)
                           .textTheme
                           .headlineSmall!
-                          .copyWith(fontSize: 20.5),
+                          .copyWith(fontSize: 17.5),
                     ),
                   ),
                   // Image.asset("assets/home-Illustration.png"),
@@ -91,6 +107,7 @@ class _MainPageState extends State<MainPage> {
                         },
                       ),
                     ),
+                  const About(),
                 ],
               ),
             );
