@@ -57,7 +57,7 @@ class _QrDataPageState extends State<QrDataPage> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: <Widget>[
-                const AirdeskAndLogo(top: 10.0),
+                const AirdeskAndLogo(top: 0.0),
                 CodeContainer(code: receivedCode),
                 const SizedBox(),
                 ContentContainer(content: widget.content, uri: uri,),
@@ -67,9 +67,9 @@ class _QrDataPageState extends State<QrDataPage> {
                     Text(
                       "Image Attachments",
                         style: Theme.of(context)
-                            .textTheme
-                            .bodyLarge!
-                            .copyWith(fontWeight: FontWeight.w600)),
+                          .textTheme
+                          .bodyLarge!
+                          .copyWith(fontWeight: FontWeight.w600)),
                     const Spacer(),
                     // DownloadMultiple(uris: widget.uris!)
                   ],

@@ -22,8 +22,8 @@ class SendButton extends StatelessWidget {
       builder: (context, viewProvider, child) {
         final shareProv = Provider.of<ShareProvider>(context, listen: false);
         return Positioned(
-          right: 25,
-          bottom: -35,
+          right: 15,
+          bottom: -15,
           child: Consumer<ReceiveFileProvider>(
             builder: (context, rp, child) {
               return GestureDetector(
@@ -34,25 +34,25 @@ class SendButton extends StatelessWidget {
                   }
                 },
                 child: viewProvider.isLoading
-                    ? Container(
-                        height: 35,
-                        width: 60,
-                        decoration: BoxDecoration(
-                          color: primaryBlue,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: spinKit,
-                      )
-                    : Container(
-                        padding: const EdgeInsets.all(13),
-                        height: 60,
-                        width: 60,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: primaryBlue,
-                        ),
-                        child: SvgPicture.asset("assets/svg/paper-plane.svg"),
+                  ? Container(
+                      height: 35,
+                      width: 60,
+                      decoration: BoxDecoration(
+                        color: primaryBlue,
+                        borderRadius: BorderRadius.circular(10),
                       ),
+                      child: spinKit,
+                    )
+                  : Container(
+                      padding: const EdgeInsets.all(13),
+                      height: 60,
+                      width: 60,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: primaryBlue,
+                      ),
+                      child: SvgPicture.asset("assets/svg/paper-plane.svg"),
+                    ),
               );
             }
           ),

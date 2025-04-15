@@ -15,9 +15,10 @@ class ContentContainer extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 20),
       height: 200,
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: primaryGreen,
-        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+        border: Border.all(color: bordercolor, width: 2)
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

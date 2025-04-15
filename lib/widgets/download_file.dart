@@ -47,12 +47,12 @@ class _DownloadFileState extends State<DownloadFile> {
                 height: 15,
                 width: 15,
                 child: Center(
-                  child: CircularProgressIndicator(color: primaryBlue),
+                  child: CircularProgressIndicator(color: codeColor),
                 ),
               )
             : const Icon(
                 Icons.file_download_outlined,
-                color: primaryBlue,
+                color: codeColor,
               ),
       );
     });

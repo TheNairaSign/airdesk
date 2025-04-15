@@ -33,53 +33,54 @@ class FileDisplayContainer extends StatelessWidget {
             final fileName = files[index].originalName;
             return Container(
               padding: const EdgeInsets.all(10),
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: primaryGreen,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          FilePreviewContainer(url: url, uri: uri),
-          const SizedBox(
-            width: 10,
-          ),
-          Expanded(
-            child: Text(
-              fileName,
-              softWrap: true,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.left,
-              maxLines: 4,
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
-            ),
-          ),
-          const Spacer(),
-          DownloadFile(
-            index: index,
-            // file: files,
-            imageLength: imageLength,
-            url: url,
-            fileName: fileName,
-          ),
-        ],
-      ),
-    );
-  })
-  : Container(
-      height: 110,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: primaryGreen,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Center(
-        child: Text(
-          imageUrl ?? 'No data',
-          style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
-        ),
-      ),
-    );
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: primaryGreen,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: bordercolor, width: 2)
+              ),
+              child: Row(
+                children: [
+                  FilePreviewContainer(url: url, uri: uri),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Expanded(
+                    child: Text(
+                      fileName,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.left,
+                      maxLines: 4,
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
+                    ),
+                  ),
+                  const Spacer(),
+                  DownloadFile(
+                    index: index,
+                    // file: files,
+                    imageLength: imageLength,
+                    url: url,
+                    fileName: fileName,
+                  ),
+                ],
+              ),
+            );
+          })
+          : Container(
+              height: 110,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: primaryGreen,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Text(
+                  imageUrl ?? 'No data',
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
+                ),
+              ),
+            );
 
   Widget body = uri != null && uri!.isAbsolute ? content : Container(
     height: 110,

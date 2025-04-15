@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 
+import 'package:air_desk/constants.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
 import 'package:flutter/material.dart';
@@ -18,12 +19,26 @@ class ViewProvider extends ChangeNotifier {
   final _viewController = TextEditingController();
   TextEditingController get viewController => _viewController;
 
+  /// If there is an initial text share from an external source
+  /// The shared text becomes the initial text
+  /// Otherwise the textbox remains empty
+  void initialText(BuildContext context){
+    final sharedText = Provider.of<ReceiveFileProvider>(context, listen: false).sharedText;
+    _viewController.text = sharedText ?? '';
+  }
+
+  // This is to store the value of the textbox when changed
+  void storeInitialValues(String value) {
+    _viewController.text = value.trim();
+    notifyListeners();
+  }
+
   bool _isLoading = false;
   bool get isLoading => _isLoading; 
 
   Future<void> fetchData(BuildContext context, String deskId) async {
     showLoadingDialog(context);
-    final url = 'https://airdesk-server.onrender.com/api/desk/$deskId';
+    final url = '$baseUrl/$deskId';
     try {
       final response = await http.get(Uri.parse(url));
 
@@ -66,10 +81,12 @@ class ViewProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-    Future<void> fetchOrShareData(BuildContext context, String deskId) async {
+  Future<void> fetchOrShareData(BuildContext context, String deskId) async {
     // showLoadingDialog(context);
+
+    // If there is a valid deskId, then view the data
     FocusScope.of(context).unfocus();
-    final url = 'https://airdesk-server.onrender.com/api/desk/$deskId';
+    final url = '$baseUrl/$deskId';
     try {
       _isLoading = true;
       notifyListeners();
@@ -88,6 +105,8 @@ class ViewProvider extends ChangeNotifier {
         final airdeskData = await apiService.getdata(extractedValue, context);
 
         // Navigator.of(context).pop(); // Close the loading dialog before navigation
+
+        // Try to fetch data first
         debugPrint("Switching page");
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -102,7 +121,10 @@ class ViewProvider extends ChangeNotifier {
             ),
           ),
         );
-      } else {
+      }
+      
+      // If the data is not a valid deskId, then the send/share the data 
+      else {
         // Navigator.of(context).pop(); // Close the loading dialog
         final shareProvider = Provider.of<ShareProvider>(context, listen: false);
         final receiveProvider = context.read<ReceiveFileProvider>();

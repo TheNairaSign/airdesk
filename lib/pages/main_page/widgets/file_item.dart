@@ -14,11 +14,11 @@ class FileItem extends StatelessWidget {
     return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      FilePreview(file: File(filePath)), // Assuming FilePreview supports File
+      FilePreview(file: File(filePath)),
       const SizedBox(width: 15),
       Expanded(
         child: Text(
-          filePath,
+          filePath.split('/').last,
           softWrap: true,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.left,

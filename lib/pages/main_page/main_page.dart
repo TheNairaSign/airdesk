@@ -5,6 +5,7 @@ import 'package:air_desk/pages/main_page/widgets/about.dart';
 import 'package:air_desk/pages/main_page/widgets/file_item.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
+import 'package:air_desk/service/url_launcher_service.dart';
 import 'package:air_desk/widgets/airdesk_and_logo.dart';
 import 'package:air_desk/pages/main_page/widgets/view_container.dart';
 import 'package:flutter/material.dart';
@@ -25,13 +26,13 @@ class _MainPageState extends State<MainPage> {
     final receiveProvider = Provider.of<ReceiveFileProvider>(context, listen: false);
     receiveProvider
       ..updateIntentSub()
-      ..getInitialMedia();
+      ..getInitialContent();
   }
 
   @override
   Widget build(BuildContext context) {
     final receiveProvider = Provider.of<ReceiveFileProvider>(context);
-    final _sharedFiles = receiveProvider.sharedFiles;
+    final sharedFiles = receiveProvider.sharedFiles;
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -39,7 +40,11 @@ class _MainPageState extends State<MainPage> {
           actions: [
             Text("How it works", style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16)),
             GestureDetector(
-              onTap: () {},
+              onTap: () {
+                // Navigator.of(context).push(MaterialPageRoute(builder: (context) => const WebViewPage()));
+                // openWebUrl();
+                UrlLauncherService.launchInAppBrowser();
+              },
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 height: 25,
@@ -51,7 +56,7 @@ class _MainPageState extends State<MainPage> {
         body: Consumer<ShareProvider>(
           builder: (context, cP, child) {
             return Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 40),
+              padding: const EdgeInsets.only(left: 20, right: 20),
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
@@ -72,11 +77,11 @@ class _MainPageState extends State<MainPage> {
                   const SizedBox(height: 30),
                   UploadFile(pickFile: () async => cP.pickFiles()),
                   const SizedBox(height: 10),
-                  if (cP.file.isNotEmpty || _sharedFiles.isNotEmpty)
+                  if (cP.file.isNotEmpty || sharedFiles.isNotEmpty)
                     SizedBox(
                       child: ListView.separated(
                         separatorBuilder: (context, index) => const SizedBox(height: 10),
-                        itemCount: (cP.file.length + _sharedFiles.length),
+                        itemCount: (cP.file.length + sharedFiles.length),
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
                         itemBuilder: (context, index) {
@@ -87,19 +92,19 @@ class _MainPageState extends State<MainPage> {
                               filePath: file.path,
                               onRemove: () {
                                 setState(() {
-                                  cP.file.removeAt(index); // Remove file from provider
+                                  cP.file.removeAt(index);
                                 });
                               },
                             );
                           } else {
                             // Shared files from _sharedFiles
                             int sharedIndex = index - cP.file.length;
-                            final sharedFile = _sharedFiles[sharedIndex];
+                            final sharedFile = sharedFiles[sharedIndex];
                             return FileItem(
                               filePath: sharedFile.path,
                               onRemove: () {
                                 setState(() {
-                                  _sharedFiles.removeAt(sharedIndex); // Remove shared file
+                                  sharedFiles.removeAt(sharedIndex);
                                 });
                               },
                             );

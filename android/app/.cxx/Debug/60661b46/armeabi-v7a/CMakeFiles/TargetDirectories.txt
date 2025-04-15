@@ -1,0 +1,2 @@
+C:/Project Files/airdesk/android/app/.cxx/Debug/60661b46/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Project Files/airdesk/android/app/.cxx/Debug/60661b46/armeabi-v7a/CMakeFiles/rebuild_cache.dir

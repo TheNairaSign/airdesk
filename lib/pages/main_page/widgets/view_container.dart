@@ -10,10 +10,30 @@ import 'package:provider/provider.dart';
 
 import '../../../providers/view_provider.dart';
 
-class ViewContainer extends StatelessWidget {
+class ViewContainer extends StatefulWidget {
   const ViewContainer({super.key});
 
+  @override
+  State<ViewContainer> createState() => _ViewContainerState();
+}
+
+class _ViewContainerState extends State<ViewContainer> {
   final String text = "Input Content to share or [desk code] to view";
+
+  // ✅ Create the FocusNode here to persist across rebuilds
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<ViewProvider>(context, listen: false).initialText(context);
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose(); // ✅ Always dispose your FocusNode
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,100 +43,103 @@ class ViewContainer extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final double width = size.width;
 
-    return Consumer<ViewProvider>(builder: (context, viewProvider, child) {
-      final FocusNode focusNode = FocusNode();
-      return GestureDetector(
-        onTap: () {
-          focusNode.requestFocus(); // Focus the TextField when the container is tapped
-        },
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              height: 400,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: borderColor, width: borderWidth),
-                borderRadius: const BorderRadius.all(Radius.circular(20)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: width * 0.7,
-                    child: TextField(
-                      focusNode: focusNode, // Use the FocusNode here
-                      controller: viewProvider.viewController,
-                      textDirection: TextDirection.ltr,
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.transparent,
-                        hintText: "Share or View Desk",
-                        hintStyle: GoogleFonts.poppins(
-                          color: Colors.grey[700],
-                          fontSize: 17,
-                        ),
-                        border: InputBorder.none,
+    return Consumer<ViewProvider>(
+      builder: (context, viewProvider, child) {
+        return GestureDetector(
+          onTap: () {
+            FocusScope.of(context).requestFocus(_focusNode);
+            debugPrint("Container tapped — focusing textfield.");
+          },
+          behavior: HitTestBehavior.translucent,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                height: 400,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: borderColor, width: borderWidth),
+                  borderRadius: const BorderRadius.all(Radius.circular(20)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: width * 0.68,
+                      child: TextFormField(
+                        focusNode: _focusNode,
+                        controller: viewProvider.viewController,
+                        textDirection: TextDirection.ltr,
+                        keyboardType: TextInputType.multiline,
                         enabled: true,
-                        isDense: true,
-                        enabledBorder: InputBorder.none,
+                        style: GoogleFonts.poppins(color: Colors.black),
+                        maxLines: null,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.transparent,
+                          hintText: "Share or View Desk",
+                          hintStyle: GoogleFonts.poppins(
+                            color: Colors.grey[700],
+                            fontSize: 17,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                        ),
                       ),
                     ),
-                  ),
-                  const Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                    child: RichText(
-                      maxLines: 2,
-                      text: TextSpan(
-                        text: '',
-                        style: DefaultTextStyle.of(context).style,
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: 'Input Content to ',
-                            style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 15),
-                          ),
-                          TextSpan(
-                            text: 'share',
-                            style: GoogleFonts.poppins(color: primaryBlue, fontSize: 15),
-                          ),
-                          TextSpan(
-                            text: ' or [desk code] to ',
-                            style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 15),
-                          ),
-                          TextSpan(
-                            text: 'view',
-                            style: GoogleFonts.poppins(color: const Color(0xff219c8e), fontSize: 15),
-                          ),
-                        ],
+                    const Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      child: RichText(
+                        maxLines: 2,
+                        text: TextSpan(
+                          style: DefaultTextStyle.of(context).style,
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: 'Input Content to ',
+                              style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 14),
+                            ),
+                            TextSpan(
+                              text: 'share',
+                              style: GoogleFonts.poppins(color: primaryBlue, fontSize: 14),
+                            ),
+                            TextSpan(
+                              text: ' or [desk code] to ',
+                              style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 14),
+                            ),
+                            TextSpan(
+                              text: 'view',
+                              style: GoogleFonts.poppins(color: const Color(0xff219c8e), fontSize: 14),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Positioned(
-              top: 20, // Adjust based on desired placement
-              right: 25,
-              child: GestureDetector(
-                onTap: () {
-                  debugPrint("QR Scanner");
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const QrScanner(),
-                    ),
-                  );
-                },
-                child: SvgPicture.asset("assets/svg/qr-scan.svg"),
+              Positioned(
+                top: 20,
+                right: 25,
+                child: GestureDetector(
+                  onTap: () {
+                    debugPrint("QR Scanner");
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const QrScanner(),
+                      ),
+                    );
+                  },
+                  child: SvgPicture.asset("assets/svg/qr-scan.svg"),
+                ),
               ),
-            ),
-            const SendButton(),
-          ],
-        ),
-      );
-    });
+              const SendButton(),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
+

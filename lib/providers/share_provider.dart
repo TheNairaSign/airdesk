@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:air_desk/constants.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -24,7 +25,7 @@ class ShareProvider extends ChangeNotifier {
   final _shareController = TextEditingController();
   TextEditingController get shareController => _shareController;
 
-  List<File> _file = [];
+  final List<File> _file = [];
 
   List<File> get file => _file;
 
@@ -43,17 +44,13 @@ class ShareProvider extends ChangeNotifier {
   }
 
   void clearFiles(BuildContext context) {
-    final codeProvider = context.read<ShareProvider>();
-    final receiveFileProvider = context.read<ReceiveFileProvider>();
-    final sharedFile = receiveFileProvider.sharedFiles;
-    final pickedFiles = codeProvider.file;
-    pickedFiles.clear();
-    sharedFile.clear();
+    context.read<ShareProvider>().file.clear();
+    context.read<ReceiveFileProvider>().sharedFiles.clear();
     notifyListeners();
   }
 
   Future<void> postData(BuildContext context, List<SharedMediaFile> sharedFiles) async {
-    final url = Uri.parse("https://airdesk-server.onrender.com/api/desk/dynamic");
+    final url = Uri.parse("$baseUrl/dynamic");
     final codeProvider = context.read<ViewProvider>();
 
     // Add text content to the request
@@ -63,12 +60,7 @@ class ShareProvider extends ChangeNotifier {
     // Handle locally picked files
     for (var file in _file) {
       debugPrint("Adding local file");
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'files',
-          file.path,
-        ),
-      );
+      request.files.add(await http.MultipartFile.fromPath('files', file.path));
       debugPrint("File path: ${file.path}");
     }
 
@@ -100,7 +92,6 @@ class ShareProvider extends ChangeNotifier {
         final responseData = jsonDecode(responseBody);
         debugPrint("Status: $responseBody");
         
-        clearFiles(context);
         final generatedCode = responseData["data"]["code"];
 
         addNewHistoryItem(context, generatedCode, responseData);
@@ -117,6 +108,9 @@ class ShareProvider extends ChangeNotifier {
             ),
           );
         }
+        clearFiles(context);
+        _isLoading = false;
+        notifyListeners();
 
         debugPrint('Success: $responseData');
       } else {

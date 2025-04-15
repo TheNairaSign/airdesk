@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 
 import 'providers/download_provider.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -51,7 +51,6 @@ class AirDesk extends StatelessWidget {
           statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
           systemNavigationBarColor: scaffoldColor,
           systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
-          systemStatusBarContrastEnforced: true,
         ));
 
         return child!;

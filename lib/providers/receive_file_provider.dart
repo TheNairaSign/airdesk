@@ -7,76 +7,108 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as path;
 
-
 class ReceiveFileProvider extends ChangeNotifier {
   StreamSubscription? _intentSub;
   StreamSubscription? get intentSub => _intentSub;
 
-  File? _file;
+  File? _file;                          // For shared files
+  String? _sharedText;                  // For shared text
   File? get file => _file;
+  String? get sharedText => _sharedText;
 
   final List<SharedMediaFile> _sharedFiles = [];
   List<SharedMediaFile> get sharedFiles => _sharedFiles;
 
+  // Handle shared files
   Future<File?> getSharedFile(SharedMediaFile sharedFile) async {
     try {
       final file = File(sharedFile.path);
       if (await file.exists()) {
-        // Copy file from cache to app's documents directory for persistence
         final appDir = await getApplicationDocumentsDirectory();
         final fileName = path.basename(file.path);
         _file = await file.copy('${appDir.path}/$fileName');
         debugPrint('File saved to: ${_file?.path}');
         notifyListeners();
+        return _file;
       } else {
         debugPrint('Shared file does not exist: ${sharedFile.path}');
-        // return null;
+        return null;
       }
     } catch (e) {
       debugPrint('Error accessing shared file: $e');
-      // return null;
+      return null;
     }
-    notifyListeners();
-    return _file;
   }
 
+  // Handle shared text
+  Future<String?> saveSharedText(String text) async {
+    try {
+      if (text.isNotEmpty) {
+        _sharedText = text;
+        // Optionally save text to a file
+        final appDir = await getApplicationDocumentsDirectory();
+        final file = File('${appDir.path}/shared_text_${DateTime.now().millisecondsSinceEpoch}.txt');
+        await file.writeAsString(text);
+        debugPrint('Text saved to: ${file.path}');
+        notifyListeners();
+        return text;
+      }
+    } catch (e) {
+      debugPrint('Error saving shared text: $e');
+      return null;
+    }
+    return null;
+  }
+
+  // Update subscription for both media and text
   void updateIntentSub() {
-      _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen((value) async {
-      debugPrint('Received shared files: ${value.map((f) => f.toMap())}');
+    _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen((value) async {
+      debugPrint('Received shared content: ${value.map((f) => f.toMap())}');
       
       final processedFiles = <SharedMediaFile>[];
-      for (var sharedFile in value) {
-        final file = await getSharedFile(sharedFile);
-        if (file != null) {
-          processedFiles.add(sharedFile);
-          notifyListeners();
+      for (var sharedItem in value) {
+        if (sharedItem.type == SharedMediaType.file || 
+            sharedItem.type == SharedMediaType.image || 
+            sharedItem.type == SharedMediaType.video) {
+          final file = await getSharedFile(sharedItem);
+          if (file != null) {
+            processedFiles.add(sharedItem);
+          }
+        } else if (sharedItem.type == SharedMediaType.text) {
+          await saveSharedText(sharedItem.path); // Text is passed in path for text type
         }
       }
       _sharedFiles.clear();
       _sharedFiles.addAll(processedFiles);
+      notifyListeners();
     });
-    // notifyListeners();
   }
 
-  void getInitialMedia() {
+  // Get initial media and text
+  void getInitialContent() {
     ReceiveSharingIntent.instance.getInitialMedia().then((value) async {
-      debugPrint('Initial shared files: ${value.map((f) => f.toMap())}');
+      debugPrint('Initial shared content: ${value.map((f) => f.toMap())}');
       
       final processedFiles = <SharedMediaFile>[];
-      for (var sharedFile in value) {
-        final file = await getSharedFile(sharedFile);
-        if (file != null) {
-          processedFiles.add(sharedFile);
-          notifyListeners();
+      for (var sharedItem in value) {
+        if (sharedItem.type == SharedMediaType.file || 
+            sharedItem.type == SharedMediaType.image || 
+            sharedItem.type == SharedMediaType.video) {
+          final file = await getSharedFile(sharedItem);
+          if (file != null) {
+            processedFiles.add(sharedItem);
+          }
+        } else if (sharedItem.type == SharedMediaType.text) {
+          await saveSharedText(sharedItem.path); // Text is passed in path
         }
       }
-        _sharedFiles.clear();
-        _sharedFiles.addAll(processedFiles);
-      });
-      // notifyListeners();
-    }
+      _sharedFiles.clear();
+      _sharedFiles.addAll(processedFiles);
+      notifyListeners();
+    });
+  }
 
-    @override
+  @override
   void dispose() {
     _intentSub?.cancel();
     super.dispose();
