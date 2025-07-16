@@ -1,7 +1,9 @@
 import 'package:air_desk/constants.dart';
+import 'package:air_desk/providers/my_desk_provider.dart';
 import 'package:air_desk/themes/light_theme.dart';
 import 'package:air_desk/utils/get_device_info.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class MyDeskPage extends StatefulWidget {
@@ -13,10 +15,13 @@ class MyDeskPage extends StatefulWidget {
 
 class _MyDeskPageState extends State<MyDeskPage> {
   Map<String, String> deviceInfo = {};
+
+  late String generatedCode;
   @override
   void initState() {
     super.initState();
     getDeviceName();
+    generatedCode = Provider.of<MyDeskProvider>(context, listen: false).generateMixedCode();
   }
 
   Future<void> getDeviceName() async {
@@ -82,7 +87,8 @@ class _MyDeskPageState extends State<MyDeskPage> {
               child: Column(
                 children: [
                   Text(
-                    deviceInfo['deviceId'] ?? '',
+                    // deviceInfo['deviceId'] ?? '',
+                    generatedCode,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -99,7 +105,8 @@ class _MyDeskPageState extends State<MyDeskPage> {
                     ),
                     child: Center(
                       child: QrImageView(
-                        data: '${deviceInfo['deviceId']}@${deviceInfo['deviceName']}',
+                        // data: '${deviceInfo['deviceId']}@${deviceInfo['deviceName']}',
+                        data: generatedCode,
                         size: 300,
                       ),
                     ),

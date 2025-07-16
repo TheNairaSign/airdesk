@@ -1,5 +1,6 @@
 import 'package:air_desk/pages/startup_page.dart';
 import 'package:air_desk/providers/history_provider.dart';
+import 'package:air_desk/providers/my_desk_provider.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
@@ -26,6 +27,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => DownloadProvider()),
         ChangeNotifierProvider(create: (context) => HistoryProvider()),
         ChangeNotifierProvider(create: (context) => ReceiveFileProvider()),
+        ChangeNotifierProvider(create: (context) => MyDeskProvider()),
       ],
       child: const AirDesk(),
     ),

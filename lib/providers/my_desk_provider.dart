@@ -12,6 +12,7 @@ class MyDeskProvider extends ChangeNotifier {
     for (int i = 0; i < 6; i++) {
       buffer.write(chars[random.nextInt(chars.length)]);
     }
+    debugPrint('Generated code: ${buffer.toString()}');
 
     return buffer.toString();
   }
