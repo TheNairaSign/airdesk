@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class About extends StatelessWidget {
   const About({super.key});
@@ -19,8 +18,8 @@ class About extends StatelessWidget {
         children: [
           Image.asset("assets/folders.png"),
           Text(
-            "How Airdesk Works",
-            style: GoogleFonts.poppins(
+            "How to share on Airdesk",
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: const Color(0xff4b5563),
@@ -28,9 +27,9 @@ class About extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            """Airdesk allows you to share web links, text or files between 2 devices, so instead of login into WhatsApp on two devices for example or adding someone on WhatsApp just to share something with them you just need to open airdesk on both devices and share resources in 15 seconds.""",
-            style: GoogleFonts.poppins(color: Colors.black),
-          )
+            'How to Share a File, Text or links\n1. Tap Add files or drag file into the box or type content in the content section.\n2. Hit the Send button (paper plane icon).\n3. You\'ll get a 6-character code, your Desk Code.\n4. Share the code or QRcode with receiver',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black),
+          ),
         ],
       ),
     );

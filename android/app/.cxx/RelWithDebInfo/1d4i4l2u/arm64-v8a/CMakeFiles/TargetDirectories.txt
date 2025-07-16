@@ -1,0 +1,2 @@
+C:/Project Files/airdesk/android/app/.cxx/RelWithDebInfo/1d4i4l2u/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Project Files/airdesk/android/app/.cxx/RelWithDebInfo/1d4i4l2u/arm64-v8a/CMakeFiles/rebuild_cache.dir

@@ -3,8 +3,8 @@
 import 'package:air_desk/components/qr_scanner.dart';
 import 'package:air_desk/constants.dart';
 import 'package:air_desk/pages/main_page/widgets/send_button.dart';
+// import 'package:air_desk/pages/main_page/widgets/status_switch.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
@@ -38,7 +38,7 @@ class _ViewContainerState extends State<ViewContainer> {
   @override
   Widget build(BuildContext context) {
     const borderColor = Color.fromRGBO(0, 108, 255, 0.1);
-    const borderWidth = 2.0;
+    const borderWidth = 1.0;
 
     final size = MediaQuery.of(context).size;
     final double width = size.width;
@@ -65,6 +65,8 @@ class _ViewContainerState extends State<ViewContainer> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // const StatusSwitch(),
+                    // const SizedBox(height: 10),
                     SizedBox(
                       width: width * 0.68,
                       child: TextFormField(
@@ -73,13 +75,13 @@ class _ViewContainerState extends State<ViewContainer> {
                         textDirection: TextDirection.ltr,
                         keyboardType: TextInputType.multiline,
                         enabled: true,
-                        style: GoogleFonts.poppins(color: Colors.black),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black),
                         maxLines: null,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.transparent,
                           hintText: "Share or View Desk",
-                          hintStyle: GoogleFonts.poppins(
+                          hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: Colors.grey[700],
                             fontSize: 17,
                           ),
@@ -98,19 +100,19 @@ class _ViewContainerState extends State<ViewContainer> {
                           children: <TextSpan>[
                             TextSpan(
                               text: 'Input Content to ',
-                              style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 14),
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey[700]),
                             ),
                             TextSpan(
                               text: 'share',
-                              style: GoogleFonts.poppins(color: primaryBlue, fontSize: 14),
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: primaryBlue),
                             ),
                             TextSpan(
                               text: ' or [desk code] to ',
-                              style: GoogleFonts.poppins(color: Colors.grey[700], fontSize: 14),
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey[700]),
                             ),
                             TextSpan(
                               text: 'view',
-                              style: GoogleFonts.poppins(color: const Color(0xff219c8e), fontSize: 14),
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: const Color(0xff219c8e)),
                             ),
                           ],
                         ),

@@ -4,7 +4,7 @@ class UrlLauncherService {
 
   // Launch URL in external browser
   static Future<void> launchInBrowser() async {
-    final Uri url = Uri.parse("https://x.com/Airdesk_link?t=qKczUp_QGNzZcCGmpLCe-w&s=09");
+    final Uri url = Uri.parse("https://x.com/Airdesk_me");
     if (!await launchUrl(
       url,
       mode: LaunchMode.externalApplication,
@@ -15,7 +15,7 @@ class UrlLauncherService {
 
   // Launch URL in in-app browser
   static Future<void> launchInAppBrowser() async {
-    final Uri url = Uri.parse("https://x.com/Airdesk_link?t=qKczUp_QGNzZcCGmpLCe-w&s=09");
+    final Uri url = Uri.parse("https://x.com/Airdesk_me");
     if (!await launchUrl(
       url,
       mode: LaunchMode.inAppWebView,

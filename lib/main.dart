@@ -13,6 +13,9 @@ import 'providers/download_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // await Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform,
+  // );
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(
@@ -29,9 +32,24 @@ void main() async {
   );
 }
 
-class AirDesk extends StatelessWidget {
+class AirDesk extends StatefulWidget {
   const AirDesk({super.key});
 
+  @override
+  State<AirDesk> createState() => _AirDeskState();
+}
+
+class _AirDeskState extends State<AirDesk> {
+
+  /*
+  @override
+  initState() {
+    super.initState();
+    FirebaseMessagingService.initialize(context);
+    // NotificationService.getFCMToken(context);
+  }
+  */
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

@@ -60,16 +60,14 @@ class _QrDataPageState extends State<QrDataPage> {
                 const AirdeskAndLogo(top: 0.0),
                 CodeContainer(code: receivedCode),
                 const SizedBox(),
-                ContentContainer(content: widget.content, uri: uri,),
+                ContentContainer(content: widget.content, uri: uri),
                 const SizedBox(height: 10),
                 Row(
                   children: [
                     Text(
                       "Image Attachments",
-                        style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge!
-                          .copyWith(fontWeight: FontWeight.w600)),
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.w600),
+                    ),
                     const Spacer(),
                     // DownloadMultiple(uris: widget.uris!)
                   ],
@@ -78,8 +76,7 @@ class _QrDataPageState extends State<QrDataPage> {
                 const Divider(height: 0),
                 const SizedBox(height: 20),
                 FileDisplayContainer(uri: uri, imageUrl: widget.imageUrl, imageLength: widget.imageLength, files: widget.file!)
-                ],
-              // ],
+              ],
             ),
           ),
         ),

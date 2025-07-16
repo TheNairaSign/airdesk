@@ -18,7 +18,7 @@ class ContentContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: primaryGreen,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
-        border: Border.all(color: bordercolor, width: 2)
+        border: Border.all(color: bordercolor, width: 1)
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,7 +31,7 @@ class ContentContainer extends StatelessWidget {
           ),
           const Divider(color: Colors.grey),
           const SizedBox(height: 15),
-          if (content != null)
+          if (content != null)  
             Text(
               content!,
               style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),

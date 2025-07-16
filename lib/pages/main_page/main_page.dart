@@ -1,15 +1,16 @@
 import 'dart:io';
 
 import 'package:air_desk/components/upload__file.dart';
+import 'package:air_desk/pages/main_page/my_desk_page.dart';
 import 'package:air_desk/pages/main_page/widgets/about.dart';
 import 'package:air_desk/pages/main_page/widgets/file_item.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
-import 'package:air_desk/service/url_launcher_service.dart';
+import 'package:air_desk/services/url_launcher_service.dart';
+import 'package:air_desk/themes/light_theme.dart';
 import 'package:air_desk/widgets/airdesk_and_logo.dart';
 import 'package:air_desk/pages/main_page/widgets/view_container.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -37,20 +38,31 @@ class _MainPageState extends State<MainPage> {
       child: Scaffold(
         appBar: AppBar(
           forceMaterialTransparency: true,
+          leading: GestureDetector(
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyDeskPage())),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                child: CircleAvatar(
+                  radius: 30,
+                  child: Image.network(placeholderProfilePic),
+                ),
+              ),
+            ),
           actions: [
             Text("How it works", style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16)),
+            const SizedBox(width: 10),
             GestureDetector(
               onTap: () {
                 // Navigator.of(context).push(MaterialPageRoute(builder: (context) => const WebViewPage()));
                 // openWebUrl();
                 UrlLauncherService.launchInAppBrowser();
               },
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                height: 25,
-                width: 25,
-                child: SvgPicture.asset("assets/svg/twitter.svg")),
+              child: SizedBox(
+                height: 40,
+                width: 40,
+                child: Image.asset("assets/x.png")),
             ),
+            const SizedBox(width: 10),
           ],
         ),
         body: Consumer<ShareProvider>(
@@ -66,10 +78,7 @@ class _MainPageState extends State<MainPage> {
                     child: Text(
                       "Share links, texts and files between devices and people instantly.",
                       textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall!
-                          .copyWith(fontSize: 17.5),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
                     ),
                   ),
                   // Image.asset("assets/home-Illustration.png"),

@@ -5,10 +5,23 @@ final lightTheme = ThemeData().copyWith(
   brightness: Brightness.light,
   scaffoldBackgroundColor: const Color(0xfff4f8fd),
   textTheme: TextTheme(
-    headlineLarge: GoogleFonts.poppins(color: Colors.black),
-    headlineSmall: GoogleFonts.poppins(color: const Color(0xff14532D),),
-    bodyLarge:  GoogleFonts.poppins(color: Colors.black),
+    headlineLarge: GoogleFonts.lato(color: Colors.black),
+    headlineSmall: GoogleFonts.lato(color: const Color(0xff14532D),),
+    bodyLarge:  GoogleFonts.lato(color: Colors.black),
+    bodyMedium: GoogleFonts.lato(color: Colors.black87),
+    bodySmall: GoogleFonts.lato(color: Colors.black54),
+    labelLarge: GoogleFonts.lato(color: Colors.black),
+    labelMedium: GoogleFonts.lato(color: Colors.black87),
+    labelSmall: GoogleFonts.lato(color: Colors.black54),
+    titleLarge: GoogleFonts.lato(color: Colors.black),
+    titleMedium: GoogleFonts.lato(color: Colors.black87),
+    titleSmall: GoogleFonts.lato(color: Colors.black54),
+    displayLarge: GoogleFonts.lato(color: Colors.black),
+    displayMedium: GoogleFonts.lato(color: Colors.black87),
+    displaySmall: GoogleFonts.lato(color: Colors.black54),
   ),
   cardColor: const Color(0xfff4f8fd),
   shadowColor: const Color.fromRGBO(0, 108, 255, 0.1)
 );
+
+const placeholderProfilePic = 'https://avatar.iran.liara.run/public/boy?username=Ash';

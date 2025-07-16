@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:air_desk/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../../model/history_model.dart';
@@ -17,7 +16,7 @@ class HistoryContainer extends StatefulWidget {
 
 class _HistoryContainerState extends State<HistoryContainer> {
   final borderColor = const Color(0xffd5eefa);
-  final borderWidth = 2.0;
+  // final borderWidth = 2.0;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +29,7 @@ class _HistoryContainerState extends State<HistoryContainer> {
           separatorBuilder: (context, index) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
             HistoryItem item = historyProvider.historyItems[index];
-            return HistoryItemWidget(item: item, borderColor: borderColor, borderWidth: borderWidth, index: index,);
+            return HistoryItemWidget(item: item, borderColor: borderColor, index: index,);
           },
         );
       },
@@ -41,14 +40,12 @@ class _HistoryContainerState extends State<HistoryContainer> {
 class HistoryItemWidget extends StatefulWidget {
   final HistoryItem item;
   final Color borderColor;
-  final double borderWidth;
   final int index;
 
   const HistoryItemWidget({
     super.key,
     required this.item,
     required this.borderColor,
-    required this.borderWidth,
     required this.index,
   });
 
@@ -122,10 +119,10 @@ class _HistoryItemWidgetState extends State<HistoryItemWidget> {
       child: Container(
         padding: const EdgeInsets.all(10),
         width: double.infinity,
-        height: 80,
+        height: 70,
         decoration: BoxDecoration(
           color: primaryGreen,
-          border: Border.all(color: widget.borderColor, width: widget.borderWidth),
+          border: Border.all(color: widget.borderColor, width: 1),
           borderRadius: const BorderRadius.all(Radius.circular(10)),
         ),
         child: Column(
@@ -133,12 +130,12 @@ class _HistoryItemWidgetState extends State<HistoryItemWidget> {
           children: [
             Text(
               code,
-              style: GoogleFonts.poppins(color: codeColor, fontSize: 20),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: codeColor, fontSize: 20),
             ),
             const SizedBox(height: 7),
             Text(
               formatDuration(timeLeft),
-              style: GoogleFonts.poppins(color: codeColor, fontSize: 14),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: codeColor, fontSize: 14),
             ),
           ],
         ),

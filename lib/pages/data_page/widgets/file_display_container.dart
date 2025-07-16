@@ -37,7 +37,7 @@ class FileDisplayContainer extends StatelessWidget {
               decoration: BoxDecoration(
                 color: primaryGreen,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: bordercolor, width: 2)
+                border: Border.all(color: bordercolor, width: 1)
               ),
               child: Row(
                 children: [
@@ -82,20 +82,17 @@ class FileDisplayContainer extends StatelessWidget {
               ),
             );
 
-  Widget body = uri != null && uri!.isAbsolute ? content : Container(
-    height: 110,
-    width: double.infinity,
-    decoration: BoxDecoration(
-      color: primaryGreen,
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: Center(
-      child: Text(
-        imageUrl ?? 'No data',
-        style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
+    Widget body = uri != null && uri!.isAbsolute ? content : Container(
+      height: 110,
+      width: double.infinity,
+      decoration: BoxDecoration(color: primaryGreen, borderRadius: BorderRadius.circular(10)),
+      child: Center(
+        child: Text(
+          imageUrl ?? 'No data',
+          style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
+        ),
       ),
-    ),
-  );
-  return body;
+    );
+    return body;
   }
 }
