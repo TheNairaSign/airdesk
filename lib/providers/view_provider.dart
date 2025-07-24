@@ -19,6 +19,9 @@ class ViewProvider extends ChangeNotifier {
   final _viewController = TextEditingController();
   TextEditingController get viewController => _viewController;
 
+  final _sendCodeController = TextEditingController();
+  TextEditingController get sendCodeController => _sendCodeController;
+
   /// If there is an initial text share from an external source
   /// The shared text becomes the initial text
   /// Otherwise the textbox remains empty
@@ -77,6 +80,8 @@ class ViewProvider extends ChangeNotifier {
       Navigator.of(context).pop(); // Close the loading dialog
       showErrorDialog(context);
       debugPrint('Error occurred: $e');
+    } finally {
+      _sendCodeController.clear();
     }
     notifyListeners();
   }

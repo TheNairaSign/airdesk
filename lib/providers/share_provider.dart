@@ -5,7 +5,6 @@ import 'dart:io';
 
 import 'package:air_desk/constants.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
-import 'package:air_desk/providers/view_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -51,11 +50,10 @@ class ShareProvider extends ChangeNotifier {
 
   Future<void> postData(BuildContext context, List<SharedMediaFile> sharedFiles) async {
     final url = Uri.parse("$baseUrl/dynamic");
-    final codeProvider = context.read<ViewProvider>();
 
     // Add text content to the request
     var request = http.MultipartRequest('POST', url);
-    request.fields['content'] = codeProvider.viewController.text;
+    request.fields['content'] = _shareController.text;
 
     // Handle locally picked files
     for (var file in _file) {
@@ -120,6 +118,8 @@ class ShareProvider extends ChangeNotifier {
       debugPrint('Network error: $e');
     } finally {
       _isLoading = false;
+      _shareController.clear();
+      // clearFiles(context);
       notifyListeners();
     }
 }
