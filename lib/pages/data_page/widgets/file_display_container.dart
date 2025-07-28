@@ -2,7 +2,6 @@ import 'package:air_desk/pages/data_page/widgets/file_preview_container.dart';
 import 'package:air_desk/utils/file_type.dart';
 import 'package:flutter/material.dart';
 
-import '../../../constants.dart';
 import '../../../model/image_model.dart';
 import '../../../widgets/download_file.dart';
 
@@ -35,16 +34,14 @@ class FileDisplayContainer extends StatelessWidget {
               padding: const EdgeInsets.all(10),
               width: double.infinity,
               decoration: BoxDecoration(
-                color: primaryGreen,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: bordercolor, width: 1)
+                border: Border.all(color: Theme.of(context).shadowColor, width: 1)
               ),
               child: Row(
                 children: [
                   FilePreviewContainer(url: url, uri: uri),
-                  const SizedBox(
-                    width: 10,
-                  ),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       fileName,
@@ -52,7 +49,7 @@ class FileDisplayContainer extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.left,
                       maxLines: 4,
-                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(),
                     ),
                   ),
                   const Spacer(),
@@ -71,28 +68,18 @@ class FileDisplayContainer extends StatelessWidget {
               height: 110,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: primaryGreen,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
                 child: Text(
                   imageUrl ?? 'No data',
-                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(),
                 ),
               ),
             );
 
-    Widget body = uri != null && uri!.isAbsolute ? content : Container(
-      height: 110,
-      width: double.infinity,
-      decoration: BoxDecoration(color: primaryGreen, borderRadius: BorderRadius.circular(10)),
-      child: Center(
-        child: Text(
-          imageUrl ?? 'No data',
-          style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
-        ),
-      ),
-    );
+    Widget body = uri != null && uri!.isAbsolute ? content : const SizedBox.shrink();
     return body;
   }
 }

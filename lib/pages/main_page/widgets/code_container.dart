@@ -1,9 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:air_desk/components/copy.dart';
-import 'package:air_desk/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class CodeContainer extends StatelessWidget {
   const CodeContainer({super.key, required this.code});
@@ -15,20 +13,20 @@ class CodeContainer extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          height: 60,
-          width: 150,
+          height: 50,
+          width: 120,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: primaryGreen,
-            borderRadius: BorderRadius.circular(10)
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(15)
           ),
           child: Text(
             code,
           textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(color: codeColor, fontWeight: FontWeight.bold, fontSize: 25),)
+          style: Theme.of(context).textTheme.headlineSmall!.copyWith(color: const Color(0xff069383), fontWeight: FontWeight.bold),)
         ),
         const SizedBox(width: 15),
-        Copy(textToCopy: code,)
+        Copy(textToCopy: code)
       ],
     );
   }

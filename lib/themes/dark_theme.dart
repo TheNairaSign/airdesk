@@ -6,6 +6,7 @@ final darkTheme = ThemeData.dark().copyWith(
   brightness: Brightness.dark,
   textTheme: TextTheme(
     headlineLarge: GoogleFonts.lato(color: Colors.white),
+    headlineMedium: GoogleFonts.lato(color: Colors.white),
     bodyLarge: GoogleFonts.lato(color: Colors.white),
     headlineSmall: GoogleFonts.lato(color: Colors.grey),
     bodySmall: GoogleFonts.lato(color: Colors.grey),
@@ -20,6 +21,8 @@ final darkTheme = ThemeData.dark().copyWith(
     displayMedium: GoogleFonts.lato(color: Colors.white),
     displaySmall: GoogleFonts.lato(color: Colors.white),
   ),
-  cardColor: Colors.grey,
-  shadowColor: Colors.white,
+  // cardColor: Colors.grey,
+  cardColor: Colors.grey[900],
+  // shadowColor: Colors.white,
+  shadowColor: Colors.transparent
 );

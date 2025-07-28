@@ -26,6 +26,13 @@ class _NavigationPageState extends State<NavigationPage> {
   });
   }
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   final historyProvider = context.read<HistoryProvider>();
+  //   historyProvider.initializeTimer(context);
+  // }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

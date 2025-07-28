@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:air_desk/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,21 +14,31 @@ class HistoryContainer extends StatefulWidget {
 }
 
 class _HistoryContainerState extends State<HistoryContainer> {
-  final borderColor = const Color(0xffd5eefa);
-  // final borderWidth = 2.0;
-
+  @override
+  void initState() {
+    super.initState();
+    final historyProvider = Provider.of<HistoryProvider>(context, listen: false);
+    historyProvider.loadHistory().then((_) {
+      historyProvider.initializeTimer();
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Consumer<HistoryProvider>(
       builder: (context, historyProvider, child) {
+        if (historyProvider.historyItems.isEmpty) {
+          return Center(
+            child: Text('No history yet.', style: Theme.of(context).textTheme.headlineSmall,),
+          );
+        }
         return ListView.separated(
           itemCount: historyProvider.historyItems.length,
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           separatorBuilder: (context, index) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
-            HistoryItem item = historyProvider.historyItems[index];
-            return HistoryItemWidget(item: item, borderColor: borderColor, index: index,);
+            final item = historyProvider.historyItems[index];
+            return HistoryItemWidget(item: item);
           },
         );
       },
@@ -37,105 +46,54 @@ class _HistoryContainerState extends State<HistoryContainer> {
   }
 }
 
-class HistoryItemWidget extends StatefulWidget {
+class HistoryItemWidget extends StatelessWidget {
   final HistoryItem item;
-  final Color borderColor;
-  final int index;
 
-  const HistoryItemWidget({
-    super.key,
-    required this.item,
-    required this.borderColor,
-    required this.index,
-  });
-
-  @override
-  State<HistoryItemWidget> createState() => _HistoryItemWidgetState();
-}
-
-class _HistoryItemWidgetState extends State<HistoryItemWidget> {
-  late Duration timeLeft;
-  late Timer timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeTimer();
-  }
-
-  void _initializeTimer() {
-    DateTime createdAt = DateTime.parse(widget.item.createdAt);
-    DateTime expiryTime = createdAt.add(const Duration(hours: 24));
-    timeLeft = expiryTime.difference(DateTime.now());
-    // final historyProvider = context.read<HistoryProvider>();
-
-    if (timeLeft.isNegative) {
-      timeLeft = Duration.zero;
-    }
-
-    // if (timeLeft == Duration.zero) {
-    //   setState(() {
-    //     historyProvider.historyItems.removeAt(widget.index);
-    //   });
-    // }
-
-    timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) {
-        setState(() {
-          timeLeft = timeLeft - const Duration(seconds: 1);
-          if (timeLeft.isNegative) {
-            timeLeft = Duration.zero;
-            timer.cancel();
-          }
-        });
-      }
-    });
-  }
-
-  String formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    String hours = twoDigits(duration.inHours);
-    String minutes = twoDigits(duration.inMinutes.remainder(60));
-    String seconds = twoDigits(duration.inSeconds.remainder(60));
-    return "$hours:$minutes:$seconds";
-  }
-
-  @override
-  void dispose() {
-    timer.cancel();
-    super.dispose();
-  }
+  const HistoryItemWidget({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
-    final code = widget.item.code.replaceAll("", '');
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final historyProvider = Provider.of<HistoryProvider>(context, listen: true);
+
+    // Calculate the time left for this specific item.
+    final expiryTime = DateTime.parse(item.createdAt).add(const Duration(hours: 24));
+    final timeLeft = expiryTime.difference(DateTime.now());
+
     return GestureDetector(
-      onTap: () async {
-        debugPrint("Getting history data");
-        final getData = context.read<ViewProvider>();
-        getData.fetchData(context, widget.item.code);
-        debugPrint("Getting history items");
+      onTap: () {
+        final viewProvider = context.read<ViewProvider>();
+        viewProvider.fetchData(context, item.code);
       },
       child: Container(
         padding: const EdgeInsets.all(10),
         width: double.infinity,
         height: 70,
         decoration: BoxDecoration(
-          color: primaryGreen,
-          border: Border.all(color: widget.borderColor, width: 1),
+          color: Theme.of(context).cardColor,
+          border: Border.all(color: Theme.of(context).shadowColor, width: 1),
           borderRadius: const BorderRadius.all(Radius.circular(10)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              code,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: codeColor, fontSize: 20),
+              item.code,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: isDarkMode ? Colors.white : codeColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 7),
+            if (timeLeft.isNegative)
             Text(
-              formatDuration(timeLeft),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: codeColor, fontSize: 14),
+              'Expired',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.red),
+            )
+            else
+            Text(
+              historyProvider.formatDuration(timeLeft),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: codeColor),
             ),
           ],
         ),

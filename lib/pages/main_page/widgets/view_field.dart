@@ -1,3 +1,4 @@
+import 'package:air_desk/constants.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ class ViewField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width * .65;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Consumer<ViewProvider>(
       builder: (context, viewProvider, child) {
         return Container(
@@ -16,9 +18,10 @@ class ViewField extends StatelessWidget {
           margin: const EdgeInsets.fromLTRB(0, 20, 0, 20),
           width: width,
           decoration: BoxDecoration(
-            color: const Color(0xffEAFFFD),
+            // color: const Color(0xffEAFFFD),
+            color: isDarkMode ? Theme.of(context).scaffoldBackgroundColor : primaryGreen,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: const Color(0xff069383), width: .5)
+            border: isDarkMode ? null : Border.all(color: const Color(0xff069383), width: .5)
           ),
           child: Center(
             child: TextFormField(
@@ -28,7 +31,7 @@ class ViewField extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: const Color(0xff069383), fontWeight: FontWeight.bold),
               decoration: InputDecoration(
                 hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
-                counterStyle: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[900]),
+                counterStyle: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
                 contentPadding: const EdgeInsets.all(5),
                 hintText: 'Paste QR code and enter to view',
                 enabled: true,

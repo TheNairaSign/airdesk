@@ -1,3 +1,4 @@
+import 'package:air_desk/constants.dart';
 import 'package:air_desk/utils/file_type.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -15,13 +16,14 @@ class FilePreviewContainer extends StatelessWidget {
         ? Container(
           width: 96,
           height: 96,
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(10)),
-          ),
+          decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10))),
           child: CachedNetworkImage(
               imageUrl: url!,
               fit: BoxFit.cover,
-              placeholder: (context, url) => const CircularProgressIndicator(),
+              placeholder: (context, url) => const Padding(
+                padding: EdgeInsets.all(15.0),
+                child: CircularProgressIndicator(color: codeColor),
+              ),
               errorWidget: (context, url, error) => const Icon(Icons.picture_as_pdf),
             ),
         )
@@ -38,9 +40,7 @@ class FilePreviewContainer extends StatelessWidget {
       height: 96,
       width: 96,
       clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
       child: content,
     );
 }

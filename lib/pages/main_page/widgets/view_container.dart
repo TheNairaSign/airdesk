@@ -2,6 +2,7 @@
 
 import 'package:air_desk/components/qr_scanner.dart';
 import 'package:air_desk/pages/main_page/widgets/send_button.dart';
+import 'package:air_desk/pages/main_page/widgets/status_switch.dart';
 import 'package:air_desk/pages/main_page/widgets/view_field.dart';
 import 'package:air_desk/providers/share_provider.dart';
 // import 'package:air_desk/pages/main_page/widgets/status_switch.dart';
@@ -41,6 +42,8 @@ class _ViewContainerState extends State<ViewContainer> {
     const borderColor = Color.fromRGBO(0, 108, 255, 0.1);
     const borderWidth = 1.0;
 
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     final size = MediaQuery.of(context).size;
     final double width = size.width;
     final controller = Provider.of<ShareProvider>(context, listen: false).shareController;
@@ -59,15 +62,15 @@ class _ViewContainerState extends State<ViewContainer> {
             width: double.infinity,
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: borderColor, width: borderWidth),
+              color: isDarkMode ? Colors.grey[900] : Colors.white,
+              border: Border.all(color: isDarkMode ? Colors.transparent : borderColor, width: borderWidth),
               borderRadius: const BorderRadius.all(Radius.circular(20)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // const StatusSwitch(),
-                // const SizedBox(height: 10),
+                const StatusSwitch(),
+                const SizedBox(height: 10),
                 SizedBox(
                   width: width * 0.68,
                   child: TextFormField(
@@ -97,20 +100,22 @@ class _ViewContainerState extends State<ViewContainer> {
             ),
           ),
           Positioned(
-            top: 20,
-            right: 25,
+            top: 15,
+            right: 15,
             child: GestureDetector(
               onTap: () {
                 debugPrint("QR Scanner");
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const QrScanner(),
-                  ),
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const QrScanner(),),
                 );
               },
               child: SvgPicture.asset("assets/svg/qr-scan.svg"),
             ),
           ),
+          // const Positioned(
+          //   top: 20,
+          //   left: 25,
+          //   child: StatusSwitch(),
+          // ),
           const SendButton(),
         ],
       ),

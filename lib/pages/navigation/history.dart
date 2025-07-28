@@ -30,15 +30,23 @@ class _HistoryPageState extends State<HistoryPage> {
       body: Consumer<HistoryProvider>(
         builder: (context, historyProvider, child) {
           return Padding(
-            padding: const EdgeInsets.only(left: 15, right: 15, bottom: 40),
+            padding: const EdgeInsets.only(left: 15, right: 15),
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 const AirdeskAndLogo(),
                 const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Text("Share History", style: Theme.of((context)).textTheme.headlineSmall),
+                    const SizedBox(width: 10),
+                    Text('(Disappears in 24hrs)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey)),
+                  ],
+                ),
+                const SizedBox(height: 20),
                 historyProvider.historyItems.isNotEmpty 
                 ? const HistoryContainer()
-                : Center(child: Text("No share history", style: GoogleFonts.poppins(color: Colors.black, fontSize: 25),),),
+                : Center(child: Text("No share history", style: GoogleFonts.poppins(color: Colors.black, fontSize: 25))),
               ],
             ),
           );

@@ -6,8 +6,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Copy extends StatelessWidget {
-  const Copy({super.key, required this.textToCopy});
+  const Copy({super.key, required this.textToCopy, this.textColor, this.borderColor});
   final String textToCopy;
+  final Color? textColor, borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -33,9 +34,10 @@ class Copy extends StatelessWidget {
         children: [
           SvgPicture.asset(
             "assets/svg/files-alt.svg",
-              color: Theme.of(context).textTheme.bodyLarge!.color),
+              color: textColor ?? Theme.of(context).textTheme.bodyLarge!.color
+          ),
           const SizedBox(width: 5),
-          Text("Copy", style: Theme.of(context).textTheme.bodyLarge)
+          Text("Copy", style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor))
         ],
       ),
     );

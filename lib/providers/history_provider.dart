@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -6,8 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../model/history_model.dart';
 
 class HistoryProvider extends ChangeNotifier {
-  List<HistoryItem> _historyItems = [];
 
+  List<HistoryItem> _historyItems = [];
   List<HistoryItem> get historyItems => _historyItems;
   
   // Save history items to SharedPreferences
@@ -47,5 +48,58 @@ class HistoryProvider extends ChangeNotifier {
       _historyItems = items;
       notifyListeners();
     }
+  }
+
+  Timer? _timer;
+
+  void _handleTimerTick() {
+    if (_historyItems.isEmpty) {
+      _timer?.cancel();
+      _timer = null;
+      return;
+    }
+
+    final now = DateTime.now();
+    final expiredItems = _historyItems.where((item) {
+      final expiryTime = DateTime.parse(item.createdAt).add(const Duration(hours: 24));
+      return now.isAfter(expiryTime);
+    }).toList();
+
+    if (expiredItems.isNotEmpty) {
+      _historyItems.removeWhere((item) => expiredItems.contains(item));
+      // updateHistory also calls saveHistoryItems and notifyListeners
+      updateHistory(_historyItems);
+    } else {
+      // If no items expired, still notify listeners to update countdowns in the UI.
+      notifyListeners();
+    }
+  }
+
+  /// Initializes a timer that periodically checks for expired history items
+  /// and updates the UI.
+  ///
+  /// It's recommended to call `loadHistory()` before calling this method.
+  /// The timer will automatically stop if the history list becomes empty.
+  void initializeTimer() {
+    // Cancel any existing timer to avoid multiple timers running.
+    _timer?.cancel();
+    // Start a new timer that fires every second.
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _handleTimerTick();
+    });
+  }
+
+  String formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String hours = twoDigits(duration.inHours);
+    String minutes = twoDigits(duration.inMinutes.remainder(60));
+    String seconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$hours:$minutes:$seconds";
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 }
