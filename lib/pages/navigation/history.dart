@@ -46,7 +46,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 const SizedBox(height: 20),
                 historyProvider.historyItems.isNotEmpty 
                 ? const HistoryContainer()
-                : Center(child: Text("No share history", style: GoogleFonts.poppins(color: Colors.black, fontSize: 25))),
+                : Center(child: Text("No share history", style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 25, color: Theme.of(context).textTheme.bodyLarge?.color))),
               ],
             ),
           );
