@@ -22,18 +22,29 @@ class ViewProvider extends ChangeNotifier {
   final _sendCodeController = TextEditingController();
   TextEditingController get sendCodeController => _sendCodeController;
 
+  // final _sendEditCodeController = TextEditingController();
+  // TextEditingController get sendEditCodeController => _sendEditCodeController;
+
   /// If there is an initial text share from an external source
   /// The shared text becomes the initial text
   /// Otherwise the textbox remains empty
   void initialText(BuildContext context){
+    final shareController = Provider.of<ShareProvider>(context, listen:  false).shareController;
     final sharedText = Provider.of<ReceiveFileProvider>(context, listen: false).sharedText;
-    _viewController.text = sharedText ?? '';
+    shareController.text = sharedText ?? '';
   }
 
   // This is to store the value of the textbox when changed
   void storeInitialValues(String value) {
     _viewController.text = value.trim();
     notifyListeners();
+  }
+
+  bool _deskCredValid = false;
+  bool get deskCredValid => _deskCredValid;
+
+  void sendToDesk() async {
+    
   }
 
   bool _isLoading = false;

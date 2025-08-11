@@ -54,70 +54,77 @@ class _ViewContainerState extends State<ViewContainer> {
         debugPrint("Container tapped — focusing textfield.");
       },
       behavior: HitTestBehavior.translucent,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            height: 400,
-            width: double.infinity,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: isDarkMode ? Colors.grey[900] : Colors.white,
-              border: Border.all(color: isDarkMode ? Colors.transparent : borderColor, width: borderWidth),
-              borderRadius: const BorderRadius.all(Radius.circular(20)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const StatusSwitch(),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: width * 0.68,
-                  child: TextFormField(
-                    focusNode: _focusNode,
-                    controller: controller,
-                    textDirection: TextDirection.ltr,
-                    keyboardType: TextInputType.multiline,
-                    enabled: true,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black),
-                    maxLines: null,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.transparent,
-                      hintText: "Share Desk",
-                      hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.grey[700],
-                        fontSize: 17,
-                      ),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                    ),
-                  ),
+      child: Consumer<ViewProvider>(
+        builder: (context, viewProvider, child) {
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                height: 400,
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? Colors.grey[900] : Colors.white,
+                  border: Border.all(color: isDarkMode ? Colors.transparent : borderColor, width: borderWidth),
+                  borderRadius: const BorderRadius.all(Radius.circular(20)),
                 ),
-                const Spacer(),
-                const ViewField(),
-              ],
-            ),
-          ),
-          Positioned(
-            top: 15,
-            right: 15,
-            child: GestureDetector(
-              onTap: () {
-                debugPrint("QR Scanner");
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const QrScanner(),),
-                );
-              },
-              child: SvgPicture.asset("assets/svg/qr-scan.svg"),
-            ),
-          ),
-          // const Positioned(
-          //   top: 20,
-          //   left: 25,
-          //   child: StatusSwitch(),
-          // ),
-          const SendButton(),
-        ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (viewProvider.deskCredValid)
+                    // TODO: Implemenent as in the web
+                    Text('Valid Data')
+                    else const StatusSwitch(),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: width * 0.68,
+                      child: TextFormField(
+                        focusNode: _focusNode,
+                        controller: controller,
+                        textDirection: TextDirection.ltr,
+                        keyboardType: TextInputType.multiline,
+                        enabled: true,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black),
+                        maxLines: null,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.transparent,
+                          hintText: "Share Desk",
+                          hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Colors.grey[700],
+                            fontSize: 17,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    const ViewField(),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 15,
+                right: 15,
+                child: GestureDetector(
+                  onTap: () {
+                    debugPrint("QR Scanner");
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => const QrScanner(),),
+                    );
+                  },
+                  child: SvgPicture.asset("assets/svg/qr-scan.svg"),
+                ),
+              ),
+              // const Positioned(
+              //   top: 20,
+              //   left: 25,
+              //   child: StatusSwitch(),
+              // ),
+              const SendButton(),
+            ],
+          );
+        }
       ),
     );
   }

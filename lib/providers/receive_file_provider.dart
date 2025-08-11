@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_sharing_intent/flutter_sharing_intent.dart';
+import 'package:flutter_sharing_intent/model/sharing_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+// import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as path;
 
@@ -16,13 +18,14 @@ class ReceiveFileProvider extends ChangeNotifier {
   File? get file => _file;
   String? get sharedText => _sharedText;
 
-  final List<SharedMediaFile> _sharedFiles = [];
-  List<SharedMediaFile> get sharedFiles => _sharedFiles;
+  final List<SharedFile> _sharedFiles = [];
+  List<SharedFile> get sharedFiles => _sharedFiles;
 
   // Handle shared files
-  Future<File?> getSharedFile(SharedMediaFile sharedFile) async {
+  Future<File?> getSharedFile(SharedFile sharedFile) async {
+  
     try {
-      final file = File(sharedFile.path);
+      final file = File(sharedFile.value!);
       if (await file.exists()) {
         final appDir = await getApplicationDocumentsDirectory();
         final fileName = path.basename(file.path);
@@ -31,7 +34,7 @@ class ReceiveFileProvider extends ChangeNotifier {
         notifyListeners();
         return _file;
       } else {
-        debugPrint('Shared file does not exist: ${sharedFile.path}');
+        debugPrint('Shared file does not exist: ${sharedFile.value}');
         return null;
       }
     } catch (e) {
@@ -62,20 +65,20 @@ class ReceiveFileProvider extends ChangeNotifier {
 
   // Update subscription for both media and text
   void updateIntentSub() {
-    _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen((value) async {
-      debugPrint('Received shared content: ${value.map((f) => f.toMap())}');
+    _intentSub = FlutterSharingIntent.instance.getMediaStream().listen((value) async {
+      debugPrint('Received shared content: ${value.map((f) => f.toString())}');
       
-      final processedFiles = <SharedMediaFile>[];
+      final processedFiles = <SharedFile>[];
       for (var sharedItem in value) {
-        if (sharedItem.type == SharedMediaType.file || 
-            sharedItem.type == SharedMediaType.image || 
-            sharedItem.type == SharedMediaType.video) {
+        if (sharedItem.type == SharedMediaType.FILE || 
+            sharedItem.type == SharedMediaType.IMAGE || 
+            sharedItem.type == SharedMediaType.VIDEO) {
           final file = await getSharedFile(sharedItem);
           if (file != null) {
             processedFiles.add(sharedItem);
           }
-        } else if (sharedItem.type == SharedMediaType.text) {
-          await saveSharedText(sharedItem.path); // Text is passed in path for text type
+        } else if (sharedItem.type == SharedMediaType.TEXT) {
+          await saveSharedText(sharedItem.value!); // Text is passed in path for text type
         }
       }
       _sharedFiles.clear();
@@ -86,20 +89,20 @@ class ReceiveFileProvider extends ChangeNotifier {
 
   // Get initial media and text
   void getInitialContent() {
-    ReceiveSharingIntent.instance.getInitialMedia().then((value) async {
-      debugPrint('Initial shared content: ${value.map((f) => f.toMap())}');
+    FlutterSharingIntent.instance.getInitialSharing().then((value) async {
+      debugPrint('Initial shared content: ${value.map((f) => f.toString())}');
       
-      final processedFiles = <SharedMediaFile>[];
+      final processedFiles = <SharedFile>[];
       for (var sharedItem in value) {
-        if (sharedItem.type == SharedMediaType.file || 
-            sharedItem.type == SharedMediaType.image || 
-            sharedItem.type == SharedMediaType.video) {
+        if (sharedItem.type == SharedMediaType.FILE || 
+            sharedItem.type == SharedMediaType.IMAGE || 
+            sharedItem.type == SharedMediaType.VIDEO) {
           final file = await getSharedFile(sharedItem);
           if (file != null) {
             processedFiles.add(sharedItem);
           }
-        } else if (sharedItem.type == SharedMediaType.text) {
-          await saveSharedText(sharedItem.path); // Text is passed in path
+        } else if (sharedItem.type == SharedMediaType.TEXT) {
+          await saveSharedText(sharedItem.value!); // Text is passed in path
         }
       }
       _sharedFiles.clear();

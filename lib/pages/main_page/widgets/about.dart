@@ -1,18 +1,17 @@
-import 'package:air_desk/constants.dart';
+import 'package:air_desk/utils/global_colours.dart';
 import 'package:flutter/material.dart';
 
 class About extends StatelessWidget {
   const About({super.key});
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.all(20),
       height: 330,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[900] : const Color(0xffedeff3),
+        color: GlobalColours(context).aboutContainer,
         borderRadius: const BorderRadius.all(Radius.circular(20)),
       ),
       child: Column(
@@ -22,9 +21,8 @@ class About extends StatelessWidget {
           Text(
             "How to share on Airdesk",
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: isDarkMode ? primaryBlue : const Color(0xff4b5563),
+              color: GlobalColours(context).aboutText,
             ),
           ),
           const SizedBox(height: 10),

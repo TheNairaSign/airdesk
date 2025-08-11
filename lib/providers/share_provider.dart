@@ -3,13 +3,16 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:air_desk/api/api_config.dart';
 import 'package:air_desk/constants.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
+import 'package:air_desk/providers/view_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sharing_intent/model/sharing_file.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+// import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../model/history_model.dart';
 import '../pages/qr_display_page.dart';
@@ -24,9 +27,76 @@ class ShareProvider extends ChangeNotifier {
   final _shareController = TextEditingController();
   TextEditingController get shareController => _shareController;
 
-  final List<File> _file = [];
+  List<File> _file = [];
 
   List<File> get file => _file;
+
+  bool _isLive = false;
+  bool get isLive => _isLive;
+
+  void setIsLive(bool value) {
+    _isLive = value;
+    debugPrint('Is Live: $_isLive');
+    notifyListeners();
+  }
+
+  // List<File> _editFiles = [];
+  // List<File> get editFiles => _editFiles;
+
+  // String _editText = '';
+  // String get editText => _editText;
+
+  String? _editAdminCode;
+
+  void getEditFiles(BuildContext context) async {
+    final getEditController = Provider.of<ViewProvider>(context).sendCodeController.text.trim(); 
+    const baseUrl = ApiConfig.getData;
+    final url = '${baseUrl}edit/$getEditController';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      final responseBody = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final editData = responseBody['data'];
+        _shareController.text = editData['text'];
+        _file = editData['images'];
+        _editAdminCode = editData['editCode'];
+      }
+    } catch (error) {
+      debugPrint('An Error Occurred when getting edit for desk');
+    }
+  }
+
+  void updateEdit(BuildContext context) async {
+    const baseUrl = ApiConfig.getData;
+    final uri = Uri.parse('${baseUrl}edit/$_editAdminCode');
+
+    var request = http.MultipartRequest('POST', uri);
+    request.fields['content'] = _shareController.text;
+
+    for (var file in _file) {
+      debugPrint("Adding local file");
+      request.files.add(await http.MultipartFile.fromPath('files', file.path));
+      debugPrint("File path: ${file.path}");
+    }
+
+    try {
+      _isLoading = true;
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        // TODO: Clear share controller and files
+        _shareController.clear();
+        clearFiles(context);
+      }
+    } catch (error) {
+      debugPrint('Error Sending edited data: $error');
+      throw Exception('Can\'t edit data because: $error');
+    }
+  }
 
   Future<void> pickFiles() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -43,17 +113,22 @@ class ShareProvider extends ChangeNotifier {
   }
 
   void clearFiles(BuildContext context) {
-    context.read<ShareProvider>().file.clear();
+    _file.clear();
     context.read<ReceiveFileProvider>().sharedFiles.clear();
     notifyListeners();
   }
 
-  Future<void> postData(BuildContext context, List<SharedMediaFile> sharedFiles) async {
+  Future<void> postData(BuildContext context, List<SharedFile> sharedFiles) async {
     final url = Uri.parse("$baseUrl/dynamic");
 
     // Add text content to the request
     var request = http.MultipartRequest('POST', url);
     request.fields['content'] = _shareController.text;
+
+    if (_isLive) {
+      debugPrint('Desk is Live');
+      request.fields['deskType'] = 'live';
+    }
 
     // Handle locally picked files
     for (var file in _file) {
@@ -68,10 +143,10 @@ class ShareProvider extends ChangeNotifier {
       request.files.add(
         await http.MultipartFile.fromPath(
           'files',
-          sharedFile.path,
+          sharedFile.value!,
         ),
       );
-      debugPrint("Shared file path: ${sharedFile.path}");
+      debugPrint("Shared file path: ${sharedFile.value}");
     }
 
     try {

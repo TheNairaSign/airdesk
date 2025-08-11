@@ -1,7 +1,9 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:air_desk/constants.dart';
+import 'package:air_desk/providers/share_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class StatusSwitch extends StatefulWidget {
   const StatusSwitch({super.key});
@@ -13,6 +15,15 @@ class StatusSwitch extends StatefulWidget {
 class _StatusSwitchState extends State<StatusSwitch> {
 
   bool value = true;
+
+  // Toggle switch function to update value state
+  void toggleSwitch() {
+    setState(() {
+      value = !value;
+      Provider.of<ShareProvider>(context, listen: false).setIsLive(value);
+
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return GestureDetector(

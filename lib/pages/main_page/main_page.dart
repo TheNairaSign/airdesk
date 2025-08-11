@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:air_desk/components/upload__file.dart';
-import 'package:air_desk/pages/main_page/my_desk_page.dart';
+import 'package:air_desk/pages/main_page/my_desk/my_desk_page.dart';
 import 'package:air_desk/pages/main_page/widgets/about.dart';
 import 'package:air_desk/pages/main_page/widgets/file_item.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
@@ -34,6 +34,9 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     final receiveProvider = Provider.of<ReceiveFileProvider>(context);
     final sharedFiles = receiveProvider.sharedFiles;
+
+
+    // final editFiles = Provider.of<ShareProvider>(context).editFiles;
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -105,12 +108,26 @@ class _MainPageState extends State<MainPage> {
                                 });
                               },
                             );
-                          } else {
+                          } 
+                          // else if (index < cP.file.length + editFiles.length) {
+                          //   // Files from editFiles
+                          //   int editIndex = index - cP.file.length;
+                          //   File editFile = editFiles[editIndex];
+                          //   return FileItem(
+                          //     filePath: editFile.path,
+                          //     onRemove: () {
+                          //       setState(() {
+                          //         editFiles.removeAt(editIndex);
+                          //       });
+                          //     },
+                          //   );
+                          // }
+                          else {
                             // Shared files from _sharedFiles
                             int sharedIndex = index - cP.file.length;
                             final sharedFile = sharedFiles[sharedIndex];
                             return FileItem(
-                              filePath: sharedFile.path,
+                              filePath: sharedFile.value!,
                               onRemove: () {
                                 setState(() {
                                   sharedFiles.removeAt(sharedIndex);
