@@ -1,17 +1,19 @@
 import 'dart:io';
 
 import 'package:air_desk/components/upload__file.dart';
+import 'package:air_desk/pages/main_page/my_desk/my_desk_creator_page.dart';
 import 'package:air_desk/pages/main_page/my_desk/my_desk_page.dart';
 import 'package:air_desk/pages/main_page/widgets/about.dart';
 import 'package:air_desk/pages/main_page/widgets/file_item.dart';
+import 'package:air_desk/pages/main_page/widgets/view_container.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
 import 'package:air_desk/services/url_launcher_service.dart';
 import 'package:air_desk/themes/light_theme.dart';
 import 'package:air_desk/widgets/airdesk_and_logo.dart';
-import 'package:air_desk/pages/main_page/widgets/view_container.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -24,11 +26,21 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+    _getAccessCode();
     final receiveProvider = Provider.of<ReceiveFileProvider>(context, listen: false);
     receiveProvider
       ..updateIntentSub()
       ..getInitialContent();
   }
+
+  Future<String?> _getAccessCode() async {
+    debugPrint('Getting access code');
+    final prefs = await SharedPreferences.getInstance();
+    final accessCode = prefs.getString('accessCode');
+    debugPrint('Access code: $accessCode');
+    return accessCode;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +54,14 @@ class _MainPageState extends State<MainPage> {
         appBar: AppBar(
           forceMaterialTransparency: true,
           leading: GestureDetector(
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyDeskPage())),
+              onTap: () async {
+                final _accessCode = await _getAccessCode();
+                if (_accessCode != null) {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyDeskCreatorPage(accessCode: _accessCode!)));
+                } else {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyDeskPage()));
+                }
+              },
               child: Container(
                 padding: const EdgeInsets.all(10),
                 child: CircleAvatar(

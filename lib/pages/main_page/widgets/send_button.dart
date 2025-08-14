@@ -13,12 +13,14 @@ class SendButton extends StatelessWidget {
   Widget build(BuildContext context) {
     
     const spinKit = SpinKitThreeBounce(
-    color: Colors.white,
-    size: 15,
-  );
+      color: Colors.white,
+      size: 15,
+    );
 
     return Consumer<ShareProvider>(
       builder: (context, shareProvider, child) {
+        final color = shareProvider.isEdit ? const Color(0xff069383) : primaryBlue;
+
         return Positioned(
           right: 15,
           bottom: -15,
@@ -26,9 +28,14 @@ class SendButton extends StatelessWidget {
             builder: (context, rp, child) {
               return GestureDetector(
                 onTap: shareProvider.isLoading ? null : () async {
+                  FocusScope.of(context).unfocus();
                   debugPrint("Sending Data");
                   if(shareProvider.shareController.text.isNotEmpty || shareProvider.file.isNotEmpty || rp.sharedFiles.isNotEmpty) {
-                    await shareProvider.postData(context, rp.sharedFiles);
+                    if(shareProvider.isEdit) {
+                      await shareProvider.updateEdit(context);
+                    } else {
+                      await shareProvider.postData(context, rp.sharedFiles);
+                    }
                   }
                 },
                 child: shareProvider.isLoading
@@ -36,7 +43,7 @@ class SendButton extends StatelessWidget {
                       height: 35,
                       width: 60,
                       decoration: BoxDecoration(
-                        color: primaryBlue,
+                        color:  color,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: spinKit,
@@ -45,9 +52,9 @@ class SendButton extends StatelessWidget {
                       padding: const EdgeInsets.all(13),
                       height: 60,
                       width: 60,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: primaryBlue,
+                        color: color,
                       ),
                       child: SvgPicture.asset("assets/svg/paper-plane.svg"),
                     ),

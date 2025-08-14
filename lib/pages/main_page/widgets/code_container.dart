@@ -9,6 +9,7 @@ class CodeContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -17,7 +18,9 @@ class CodeContainer extends StatelessWidget {
           width: 120,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
+            // color: Theme.of(context).cardColor,
+            color: isDarkMode ? Colors.grey[900] : Colors.teal.withOpacity(.2),
+
             borderRadius: BorderRadius.circular(15)
           ),
           child: Text(

@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../components/copy.dart';
 
 class ContentContainer extends StatelessWidget {
-  const ContentContainer({super.key, required this.content, required this.uri});
+  const ContentContainer({super.key, required this.content});
   final String? content;
-  final Uri? uri;
   @override
   Widget build(BuildContext context) {
     return Container(

@@ -14,20 +14,19 @@ class StatusSwitch extends StatefulWidget {
 
 class _StatusSwitchState extends State<StatusSwitch> {
 
-  bool value = true;
+  bool value = false;
 
   // Toggle switch function to update value state
   void toggleSwitch() {
     setState(() {
       value = !value;
       Provider.of<ShareProvider>(context, listen: false).setIsLive(value);
-
     });
   }
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => setState(() => value = !value),
+      onTap: () => toggleSwitch(),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         width: 73,

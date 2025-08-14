@@ -1,10 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:air_desk/components/qr_scanner.dart';
+import 'package:air_desk/pages/main_page/my_desk/widgets/desk_valid_container.dart';
 import 'package:air_desk/pages/main_page/widgets/send_button.dart';
 import 'package:air_desk/pages/main_page/widgets/status_switch.dart';
 import 'package:air_desk/pages/main_page/widgets/view_field.dart';
 import 'package:air_desk/providers/share_provider.dart';
+import 'package:air_desk/utils/global_colours.dart';
 // import 'package:air_desk/pages/main_page/widgets/status_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -46,7 +48,8 @@ class _ViewContainerState extends State<ViewContainer> {
 
     final size = MediaQuery.of(context).size;
     final double width = size.width;
-    final controller = Provider.of<ShareProvider>(context, listen: false).shareController;
+    final shareProvider = Provider.of<ShareProvider>(context);
+    final controller = shareProvider.shareController;
 
     return GestureDetector(
       onTap: () {
@@ -71,10 +74,10 @@ class _ViewContainerState extends State<ViewContainer> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (viewProvider.deskCredValid)
-                    // TODO: Implemenent as in the web
-                    Text('Valid Data')
-                    else const StatusSwitch(),
+                    if (viewProvider.changeControllerState)
+                    DeskValidContainer(deskName: viewProvider.sendCodeController.text)
+                    else 
+                    const StatusSwitch(),
                     const SizedBox(height: 10),
                     SizedBox(
                       width: width * 0.68,
@@ -84,12 +87,13 @@ class _ViewContainerState extends State<ViewContainer> {
                         textDirection: TextDirection.ltr,
                         keyboardType: TextInputType.multiline,
                         enabled: true,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: GlobalColours(context).textColorForContainer),
                         maxLines: null,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.transparent,
-                          hintText: "Share Desk",
+                          hintText: viewProvider.changeControllerState ? "Share contents to ${viewProvider.sendCodeController.text}" : "Share Desk",
+
                           hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: Colors.grey[700],
                             fontSize: 17,
@@ -100,6 +104,7 @@ class _ViewContainerState extends State<ViewContainer> {
                       ),
                     ),
                     const Spacer(),
+                    // if (shareProvider.isEdit)
                     const ViewField(),
                   ],
                 ),
@@ -116,11 +121,6 @@ class _ViewContainerState extends State<ViewContainer> {
                   child: SvgPicture.asset("assets/svg/qr-scan.svg"),
                 ),
               ),
-              // const Positioned(
-              //   top: 20,
-              //   left: 25,
-              //   child: StatusSwitch(),
-              // ),
               const SendButton(),
             ],
           );

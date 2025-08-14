@@ -1,44 +1,69 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:air_desk/constants.dart';
+import 'package:air_desk/providers/my_desk_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-class ViewField extends StatelessWidget {
+class ViewField extends StatefulWidget {
   const ViewField({super.key});
 
+  @override
+  State<ViewField> createState() => _ViewFieldState();
+}
+
+class _ViewFieldState extends State<ViewField> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width * .65;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final deskProvider = Provider.of<ViewProvider>(context);
+    final sendToDesk = deskProvider.changeControllerState;
+
     return Consumer<ViewProvider>(
       builder: (context, viewProvider, child) {
+        final deskExists = context.watch<MyDeskProvider>().deskExists;
+        final color = deskExists ? primaryBlue : Colors.red;
+        
+        final colors = sendToDesk ? deskExists ? color : Colors.red : const Color(0xff069383);
+        final backgroundColor = sendToDesk ? deskExists ? color.withOpacity(.1) : Colors.red.withOpacity(.1) : Colors.grey.withOpacity(.1);
         return Container(
-          height: 50,
-          padding: const EdgeInsets.all(7),
+          height: 40,
+          padding: const EdgeInsets.all(8),
           margin: const EdgeInsets.fromLTRB(0, 20, 0, 20),
           width: width,
           decoration: BoxDecoration(
             // color: const Color(0xffEAFFFD),
-            color: isDarkMode ? Theme.of(context).scaffoldBackgroundColor : primaryGreen,
-            borderRadius: BorderRadius.circular(15),
-            border: isDarkMode ? null : Border.all(color: const Color(0xff069383), width: .5)
+            color: isDarkMode ? Theme.of(context).scaffoldBackgroundColor : backgroundColor,
+            borderRadius: BorderRadius.circular(20),
+            border: isDarkMode ? null : Border.all(color: colors, width: .5)
+
           ),
           child: Center(
             child: TextFormField(
-              maxLength: 6,
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(9),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  viewProvider.deskNameListener(context);
+                });
+              },
               controller: viewProvider.sendCodeController,
-              cursorColor: const Color(0xff069383),
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: const Color(0xff069383), fontWeight: FontWeight.bold),
+              cursorColor: colors,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: colors, fontWeight: FontWeight.bold),
               decoration: InputDecoration(
                 hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
-                counterStyle: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
-                contentPadding: const EdgeInsets.all(5),
                 hintText: 'Paste QR code and enter to view',
                 enabled: true,
                 border: InputBorder.none
               ),
               onFieldSubmitted: (value) {
-                viewProvider.fetchData(context, value);
+                // viewProvider.fetchData(context, value);
+                viewProvider.updateControllerState(context);
               },
             ),
           ),

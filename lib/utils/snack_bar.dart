@@ -1,14 +1,18 @@
-import 'package:air_desk/constants.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+// ignore_for_file: deprecated_member_use
 
-void snackBar(String message, BuildContext context) {
+import 'package:air_desk/constants.dart';
+import 'package:air_desk/utils/global_colours.dart';
+import 'package:flutter/material.dart';
+
+void snackBar(String message, BuildContext context, {bool isError = false}) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      backgroundColor: primaryGreen,
+      showCloseIcon: true,
+      backgroundColor: isError ? Colors.red[100] : GlobalColours(context).containerColor,
       content: Text(
         message,
-        style: GoogleFonts.poppins(color: Colors.black)),
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: isError ? Colors.red : primaryBlue),
+      ),
       duration: const Duration(seconds: 4),
       behavior: SnackBarBehavior.floating,
       margin: const EdgeInsets.all(10),

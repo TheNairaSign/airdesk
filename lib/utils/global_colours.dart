@@ -58,6 +58,10 @@ class GlobalColours {
     return _isDarkMode ? Colors.green[900]: primaryBlue;
   }
 
+  Color? get codeTextColor {
+    return _isDarkMode ? const Color(0xff069383) : primaryBlue;
+  }
+
   BoxShadow get containerShadow {
     final _color = _isDarkMode ? Colors.transparent : Colors.grey.withOpacity(.1);
     return BoxShadow(

@@ -1,14 +1,14 @@
-class ImageData {
+class ImageModel {
   final String url;
   final String originalName;
 
-  ImageData({
+  ImageModel({
     required this.url,
     required this.originalName,
   });
 
-  factory ImageData.fromJson(Map<String, dynamic> json) {
-    return ImageData(
+  factory ImageModel.fromJson(Map<String, dynamic> json) {
+    return ImageModel(
       url: json['url'] ?? '',
       originalName: json['originalName'] ?? '',
     );

@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:air_desk/constants.dart';
+import 'package:air_desk/providers/my_desk_provider.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
 import 'package:flutter/material.dart';
@@ -40,8 +41,8 @@ class ViewProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool _deskCredValid = false;
-  bool get deskCredValid => _deskCredValid;
+  // bool _deskCredValid = false;
+  // bool get deskCredValid => _deskCredValid;
 
   void sendToDesk() async {
     
@@ -75,11 +76,7 @@ class ViewProvider extends ChangeNotifier {
             builder: (context) => QrDataPage(
               data: jsonEncode(extractedValue),
               content: airdeskData.text,
-              imageUrl: airdeskData.imageUrl,
-              fileName: airdeskData.imageName,
-              imageLength: airdeskData.images.length,
-              file: airdeskData.images,
-              uris: airdeskData.imageUrls,
+              files: airdeskData.images,
             ),
           ),
         );
@@ -129,11 +126,7 @@ class ViewProvider extends ChangeNotifier {
             builder: (context) => QrDataPage(
               data: jsonEncode(extractedValue),
               content: airdeskData.text,
-              imageUrl: airdeskData.imageUrl,
-              fileName: airdeskData.imageName,
-              imageLength: airdeskData.images.length,
-              file: airdeskData.images,
-              uris: airdeskData.imageUrls,
+              files: airdeskData.images,
             ),
           ),
         );
@@ -158,4 +151,61 @@ class ViewProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void editDesk(BuildContext context, String editCode) {
+    debugPrint('Edit code: $editCode');
+    Provider.of<ShareProvider>(context, listen: false).getEditFiles(context, editCode);
+  }
+
+  bool _changeControllerState = false;
+  bool get changeControllerState => _changeControllerState;
+
+  void deskNameListener(BuildContext context) {
+    final myDeskProvider = Provider.of<MyDeskProvider>(context, listen: false);
+
+    final isMyDeskCode = _sendCodeController.text.startsWith('@') && _sendCodeController.text.substring(1).length == 8;
+    if (isMyDeskCode) {
+      debugPrint('Is my desk code: ${_sendCodeController.text}');
+      _changeControllerState = true;
+      FocusScope.of(context).unfocus();
+      myDeskProvider.checkDesk(context, _sendCodeController.text);
+      notifyListeners();
+    } else {
+      _changeControllerState = false;
+      notifyListeners();
+      debugPrint('Is not my desk code: ${_sendCodeController.text}');
+    }
+  }
+
+  void updateControllerState(BuildContext context) {
+    final myDeskProvider = Provider.of<MyDeskProvider>(context, listen: false);
+
+    // Checks if text starts with @ and has at least 6 characters after it
+    final isMyDeskCode = _sendCodeController.text.startsWith('@') && _sendCodeController.text.substring(1).length >= 6;
+    final isEdit = !_sendCodeController.text.startsWith('@') && _sendCodeController.text.length == 9;
+    final isRegular = !_sendCodeController.text.startsWith('@') && _sendCodeController.text.length == 6;
+
+
+    if (isMyDeskCode) {
+      debugPrint('Is my desk code: ${_sendCodeController.text}');
+
+      // If it is a desk name, then check if it exists
+      // If it exists, then update the validity to true
+      myDeskProvider.checkDesk(context, _sendCodeController.text);
+      notifyListeners();
+    } else if (isEdit) {
+      // If it is an edit code, then check if it exists
+      // If it exists, then update the validity to true
+      // If it does not exist, then update the validity to false
+      editDesk(context, _sendCodeController.text);
+
+      notifyListeners();
+    } else if (isRegular) {
+      // If it is a regular code, then fetch the data immediately
+      fetchData(context, _sendCodeController.text);
+      notifyListeners();
+    }
+
+  }
+
 }

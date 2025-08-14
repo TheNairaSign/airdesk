@@ -2,13 +2,31 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-class FilePreview extends StatelessWidget {
+class FilePreview extends StatefulWidget {
   const FilePreview({super.key, required this.file});
+  
   final File file;
 
   @override
+  State<FilePreview> createState() => _FilePreviewState();
+}
+
+class _FilePreviewState extends State<FilePreview> {
+  late String? imageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.file.path.startsWith('https')) {
+      imageUrl = widget.file.path;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    String fileExtension = file.path.split('.').last.toLowerCase();
+    // Check if we're dealing with a file or a URL
+    // Handle local file
+    String fileExtension = widget.file.path.split('.').last.toLowerCase();
 
     if (['jpg', 'jpeg', 'png'].contains(fileExtension)) {
       return Container(
@@ -18,11 +36,17 @@ class FilePreview extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         clipBehavior: Clip.hardEdge,
-        child: Image.file(
-          file,
-          alignment: Alignment.center,
-          fit: BoxFit.cover,
-        ),
+        child: imageUrl != null
+          ? Image.network(
+            imageUrl!,
+            alignment: Alignment.center,
+            fit: BoxFit.cover,
+          )
+          : Image.file(
+            widget.file,
+            alignment: Alignment.center,
+            fit: BoxFit.cover,
+          ),
       );
     } else {
       return Container(
@@ -35,5 +59,5 @@ class FilePreview extends StatelessWidget {
         child: const Icon(Icons.insert_drive_file, color: Colors.white),
       );
     }
-  }
+    }
 }

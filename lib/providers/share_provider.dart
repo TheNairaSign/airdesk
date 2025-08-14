@@ -6,12 +6,12 @@ import 'dart:io';
 import 'package:air_desk/api/api_config.dart';
 import 'package:air_desk/constants.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
-import 'package:air_desk/providers/view_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sharing_intent/model/sharing_file.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+
 // import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../model/history_model.dart';
@@ -27,8 +27,7 @@ class ShareProvider extends ChangeNotifier {
   final _shareController = TextEditingController();
   TextEditingController get shareController => _shareController;
 
-  List<File> _file = [];
-
+  final List<File> _file = [];
   List<File> get file => _file;
 
   bool _isLive = false;
@@ -40,40 +39,107 @@ class ShareProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // List<File> _editFiles = [];
-  // List<File> get editFiles => _editFiles;
+  final List<dynamic> _editFiles = [];
+  List<dynamic> get editFiles => _editFiles;
 
   // String _editText = '';
   // String get editText => _editText;
 
   String? _editAdminCode;
+  String? get editAdminCode => _editAdminCode;
 
-  void getEditFiles(BuildContext context) async {
-    final getEditController = Provider.of<ViewProvider>(context).sendCodeController.text.trim(); 
-    const baseUrl = ApiConfig.getData;
-    final url = '${baseUrl}edit/$getEditController';
+
+  bool _isEdit = false;
+  bool get isEdit => _isEdit;
+
+  void getEditFiles(BuildContext context, String editCode) async {
+    // final getEditController = Provider.of<ViewProvider>(context, listen: false).sendCodeController.text.trim(); 
+    final url = '$baseUrl/edit/$editCode';
 
     try {
       final response = await http.get(Uri.parse(url));
 
       final responseBody = jsonDecode(response.body);
 
+      debugPrint('Edit response body: $responseBody');
+      debugPrint('Edit code: $editCode');
       if (response.statusCode == 200) {
+        _isEdit = true;
+        notifyListeners();
+
+        debugPrint('Edit files gotten successfully');
         final editData = responseBody['data'];
         _shareController.text = editData['text'];
-        _file = editData['images'];
         _editAdminCode = editData['editCode'];
+        final newFiles = editData['images'];
+        debugPrint('Edit files before: $editFiles');
+        _editFiles.addAll(newFiles);
+        
+        // Don't try to cast dynamic list directly to List<File>
+        // Instead, process each item properly if they contain file paths
+        if (newFiles != null && newFiles is List) {
+          debugPrint('New files is list');
+          for (var fileData in newFiles) {
+            if (fileData is Map && fileData.containsKey('url')) {
+              final filePath = fileData['url'];
+              if (filePath != null && filePath is String) {
+                _file.add(File(filePath));
+                debugPrint('New files: $_file');
+              }
+            }
+          }
+        }
+        
+        debugPrint('Edit files after: $editFiles');
+        _editAdminCode = editData['editCode'];
+        notifyListeners();
       }
     } catch (error) {
-      debugPrint('An Error Occurred when getting edit for desk');
+      _isEdit = false;
+      notifyListeners();
+      debugPrint('An Error Occurred when getting edit for desk: $error');
     }
   }
 
-  void updateEdit(BuildContext context) async {
+  Future<void> updateEdit(BuildContext context) async {
+
     const baseUrl = ApiConfig.getData;
     final uri = Uri.parse('${baseUrl}edit/$_editAdminCode');
 
     var request = http.MultipartRequest('POST', uri);
+    request.fields['content'] = _shareController.text;
+
+    for (var file in _file) {
+      debugPrint("Adding local file");
+      request.files.add(await http.MultipartFile.fromPath('files', file.path));
+      debugPrint("File path: ${file.path}");
+    }
+
+    try {
+      _isLoading = true;
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        debugPrint('...Edit data successful...');
+        _shareController.clear();
+        clearFiles(context);
+      }
+    } catch (error) {
+      debugPrint('Error Sending edited data: $error');
+      throw Exception('Can\'t edit data because: $error');
+    } finally {
+      _isEdit = false;
+      notifyListeners();
+    }
+  }
+
+  void submitToDesk(BuildContext context, String deskName) async {
+
+    const config = ApiConfig.baseUrl;
+    final url = Uri.parse('${config}myDesk/submit/$deskName');
+
+    var request = http.MultipartRequest('POST', url);
     request.fields['content'] = _shareController.text;
 
     for (var file in _file) {
@@ -166,6 +232,7 @@ class ShareProvider extends ChangeNotifier {
         debugPrint("Status: $responseBody");
         
         final generatedCode = responseData["data"]["code"];
+        final editCode = responseData["data"]["editCode"];
 
         addNewHistoryItem(context, generatedCode, responseData);
 
@@ -177,6 +244,7 @@ class ShareProvider extends ChangeNotifier {
               builder: (context) => QRDisplayPage(
                 data: "http://www.airdesk.me/view/$generatedCode",
                 code: generatedCode,
+                editCode: editCode,
               ),
             ),
           );

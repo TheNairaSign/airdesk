@@ -1,8 +1,11 @@
 import 'dart:math';
 
 import 'package:air_desk/pages/main_page/my_desk/desk_creation_page.dart';
+import 'package:air_desk/providers/my_desk_provider.dart';
 import 'package:air_desk/utils/global_colours.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 class DeskCreationForm extends StatefulWidget {
   const DeskCreationForm({super.key});
@@ -14,123 +17,132 @@ class DeskCreationForm extends StatefulWidget {
 class _DeskCreationFormState extends State<DeskCreationForm> {
 
   final _formKey = GlobalKey<FormState>();
-  final _codeController = TextEditingController();
-  bool _isGeneratingAutoCode = true;
-
-  @override
-  void dispose() {
-    _codeController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: 'Create MyDesk',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17,
-                    color: GlobalColours(context).textColorForContainer
-                  ),
+    return Consumer<MyDeskProvider>(
+      builder: (context, myDeskProvider, child) {
+        return Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Create MyDesk',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17,
+                        color: GlobalColours(context).textColorForContainer
+                      ),
+                    ),
+                    TextSpan(
+                      text: '  (Choose your code)',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
-                TextSpan(
-                  text: '  (Choose your code)',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          const ChooseYourCodeContainer(),
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 45,
-            child: TextFormField(
-              controller: _codeController,
-              // enabled: !_isGeneratingAutoCode,
-              enabled: true,
-              cursorColor: Colors.blue,
-              decoration: InputDecoration(
-                hintText: _isGeneratingAutoCode ? 'Auto-generated' : 'Enter code',
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.grey, width: .2),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.blue, width: .2),
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _isGeneratingAutoCode 
-                      ? Icons.lock_outline 
-                      : Icons.lock_open,
-                  ),
-                  onPressed: () {
+              ),
+              const SizedBox(height: 10),
+              const ChooseYourCodeContainer(),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 45,
+                child: TextFormField(
+                  errorBuilder: (context, errorText) => Text(myDeskProvider.errorMessages(), style: const TextStyle(color: Colors.red),),
+                  controller: myDeskProvider.createDeskController,
+                  // enabled: !_isGeneratingAutoCode,
+                  onChanged: (value) {
                     setState(() {
-                      _isGeneratingAutoCode = !_isGeneratingAutoCode;
-                      if (_isGeneratingAutoCode) {
-                        _codeController.clear();
-                      }
+                      myDeskProvider.updateValidity(value);
                     });
                   },
-                ),
-              ),
-              validator: (value) {
-                if (!_isGeneratingAutoCode && value != null && value.isNotEmpty) {
-                  if (value.length != 8) {
-                    return 'Code must be 8 characters';
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(8),
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                    FilteringTextInputFormatter.singleLineFormatter,
+                  ],
+                  enabled: true,
+                  cursorColor: Colors.blue,
+                  decoration: InputDecoration(
+                    hintText:  'Enter code',
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Colors.grey, width: .2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Colors.blue, width: .2),
+                    ),
+                  ),
+                  validator: (value) {
+                    // return null;
+                  
+                    final errorMessage = myDeskProvider.errorMessages();
+                    // if (errorMessage.isNotEmpty) {
+                    if (errorMessage.isNotEmpty) {
+                      return errorMessage;
+                    }
+                    return null;
+                    // // }
                   }
-                  if (!RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value)) {
-                    return 'Only letters and numbers allowed';
-                  }
-                }
-                return null;
-              },
-            ),
-          ),
-          const SizedBox(height: 15),
-          Center(
-            child: ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState?.validate() ?? false) {
-                  // Handle MyDesk creation
-                  final code = _isGeneratingAutoCode 
-                    ? _generateAutoCode() 
-                    : _codeController.text;
-                  print('Creating MyDesk with code: $code');
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: GlobalColours(context).buttonColor,
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text(
-                'Create MyDesk',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontSize: 16,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold
+              const SizedBox(height: 15),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (!myDeskProvider.deskNameValid) {
+                      return;
+                    } 
+
+                    // if (_formKey.currentState.validate()) {
+                    
+                    // }
+                    await myDeskProvider.createDesk(context);
+
+                    // if (_formKey.currentState?.validate() ?? false) {
+                    //   // Handle MyDesk creation
+                    //   final code = _isGeneratingAutoCode 
+                    //     ? myDeskProvider.generateMixedCode() 
+                    //     : myDeskProvider.createDeskController.text;
+                    //   print('Creating MyDesk with code: $code');
+                    // }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: myDeskProvider.deskNameValid ? GlobalColours(context).buttonColor : Colors.grey,
+                    disabledBackgroundColor: Colors.grey,
+                    disabledForegroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: myDeskProvider.isLoading 
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(color: Colors.white)
+                      ) 
+                    : Text(
+                        'Create MyDesk',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold
+                        ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      }
     );
   }
 }
