@@ -177,12 +177,16 @@ class ViewProvider extends ChangeNotifier {
     }
   }
 
+  bool get isEdit {
+    return !_sendCodeController.text.startsWith('@') && _sendCodeController.text.length == 9;
+  } 
+
   void updateControllerState(BuildContext context) {
     final myDeskProvider = Provider.of<MyDeskProvider>(context, listen: false);
 
     // Checks if text starts with @ and has at least 6 characters after it
     final isMyDeskCode = _sendCodeController.text.startsWith('@') && _sendCodeController.text.substring(1).length >= 6;
-    final isEdit = !_sendCodeController.text.startsWith('@') && _sendCodeController.text.length == 9;
+    // final isEdit = !_sendCodeController.text.startsWith('@') && _sendCodeController.text.length == 9;
     final isRegular = !_sendCodeController.text.startsWith('@') && _sendCodeController.text.length == 6;
 
 

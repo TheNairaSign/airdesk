@@ -12,7 +12,7 @@ class FilePreview extends StatefulWidget {
 }
 
 class _FilePreviewState extends State<FilePreview> {
-  late String? imageUrl;
+  String? imageUrl;
 
   @override
   void initState() {

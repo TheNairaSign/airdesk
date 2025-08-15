@@ -31,11 +31,12 @@ class SendButton extends StatelessWidget {
                   FocusScope.of(context).unfocus();
                   debugPrint("Sending Data");
                   if(shareProvider.shareController.text.isNotEmpty || shareProvider.file.isNotEmpty || rp.sharedFiles.isNotEmpty) {
-                    if(shareProvider.isEdit) {
-                      await shareProvider.updateEdit(context);
-                    } else {
-                      await shareProvider.postData(context, rp.sharedFiles);
-                    }
+                    shareProvider.submit(context);
+                    // if(shareProvider.isEdit) {
+                    //   await shareProvider.updateEdit(context);
+                    // } else {
+                    //   await shareProvider.postData(context, rp.sharedFiles);
+                    // }
                   }
                 },
                 child: shareProvider.isLoading
