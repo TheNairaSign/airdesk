@@ -10,6 +10,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
 class ReceiveFileProvider extends ChangeNotifier {
+  /// Remove a shared file by index and notify listeners
+  void removeSharedFile(int index) {
+    if (index >= 0 && index < _sharedFiles.length) {
+      _sharedFiles.removeAt(index);
+      notifyListeners();
+    }
+  }
   StreamSubscription? _intentSub;
   StreamSubscription? get intentSub => _intentSub;
 

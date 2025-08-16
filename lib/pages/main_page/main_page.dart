@@ -48,7 +48,7 @@ class _MainPageState extends State<MainPage> {
     final sharedFiles = receiveProvider.sharedFiles;
 
 
-    // final editFiles = Provider.of<ShareProvider>(context).editFiles;
+  final editFiles = Provider.of<ShareProvider>(context).editFiles;
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -108,11 +108,11 @@ class _MainPageState extends State<MainPage> {
                   const SizedBox(height: 30),
                   UploadFile(pickFile: () async => cP.pickFiles()),
                   const SizedBox(height: 10),
-                  if (cP.file.isNotEmpty || sharedFiles.isNotEmpty)
+                  if (cP.file.isNotEmpty || editFiles.isNotEmpty || sharedFiles.isNotEmpty)
                     SizedBox(
                       child: ListView.separated(
                         separatorBuilder: (context, index) => const SizedBox(height: 10),
-                        itemCount: (cP.file.length + sharedFiles.length),
+                        itemCount: (cP.file.length + editFiles.length + sharedFiles.length),
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
                         itemBuilder: (context, index) {
@@ -122,34 +122,43 @@ class _MainPageState extends State<MainPage> {
                             return FileItem(
                               filePath: file.path,
                               onRemove: () {
-                                setState(() {
-                                  cP.file.removeAt(index);
-                                });
+                                cP.onRemove(index, sharedFiles);
                               },
                             );
                           } 
-                          // else if (index < cP.file.length + editFiles.length) {
-                          //   // Files from editFiles
-                          //   int editIndex = index - cP.file.length;
-                          //   File editFile = editFiles[editIndex];
-                          //   return FileItem(
-                          //     filePath: editFile.path,
-                          //     onRemove: () {
-                          //       setState(() {
-                          //         editFiles.removeAt(editIndex);
-                          //       });
-                          //     },
-                          //   );
-                          // }
+                          else if (index < cP.file.length + editFiles.length) {
+                            // Files from editFiles (EditFile)
+                            int editIndex = index - cP.file.length;
+                            final editFile = editFiles[editIndex];
+                            return FileItem(
+                              filePath: editFile.url,
+                              fileName: editFile.originalName,
+                              onRemove: () {
+                                setState(() {
+                                  editFiles.removeAt(editIndex);
+                                });
+                                // Provider.of<ShareProvider>(context, listen: false).removeEditFileByPath(editFile.url);
+                              },
+                            );
+                          } 
                           else {
                             // Shared files from _sharedFiles
-                            int sharedIndex = index - cP.file.length;
+                            int sharedIndex = index - cP.file.length - editFiles.length;
                             final sharedFile = sharedFiles[sharedIndex];
                             return FileItem(
                               filePath: sharedFile.value!,
                               onRemove: () {
                                 setState(() {
-                                  sharedFiles.removeAt(sharedIndex);
+                                  debugPrint('Removing shared file: ${sharedFile.value} with index: $sharedIndex');
+                                  // Find the current index of this shared file
+                                  final currentIndex = sharedFiles.indexWhere((f) => f.value == sharedFile.value);
+                                  if (currentIndex >= 0) {
+                                    debugPrint('Found shared file at current index: $currentIndex');
+                                    sharedFiles.removeAt(currentIndex);
+                                  } else {
+                                    debugPrint('Shared file not found in the list');
+                                  }
+                                  receiveProvider.notifyListeners();
                                 });
                               },
                             );

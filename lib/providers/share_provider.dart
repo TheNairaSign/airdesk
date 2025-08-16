@@ -1,10 +1,14 @@
+// ...existing imports...
+
+// Represents an editable file with both url and original name
+
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:air_desk/api/api_config.dart';
 import 'package:air_desk/constants.dart';
+import 'package:air_desk/model/image_data.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'package:air_desk/utils/success_dialog.dart';
@@ -20,8 +24,31 @@ import '../model/history_model.dart';
 import '../pages/qr_display_page.dart';
 import 'history_provider.dart';
 
+class EditFile {
+  
+  final String url;
+  final String originalName;
+  EditFile({required this.url, required this.originalName});
+}
 
 class ShareProvider extends ChangeNotifier {
+
+  void removeEditFileByPath(String url) {
+    final removeIndex = _file.indexWhere((f) {
+      // if (f.url.startsWith('http')) {
+        debugPrint('Checking URL: ${f.path}');
+        debugPrint('Against: $url');
+        return f.path == url;
+      // }
+      // return f.url == url;
+    });
+    if (removeIndex >= 0) {
+      _file.removeAt(removeIndex);
+      notifyListeners();
+    }
+    debugPrint('Removed file at index: $removeIndex');
+  }
+
   bool _isLoading = false;
 
   bool get isLoading => _isLoading; 
@@ -41,8 +68,8 @@ class ShareProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  final List<dynamic> _editFiles = [];
-  List<dynamic> get editFiles => _editFiles;
+  final List<EditFile> _editFiles = [];
+  List<EditFile> get editFiles => _editFiles;
 
   String _editText = '';
   String get editText => _editText;
@@ -50,12 +77,14 @@ class ShareProvider extends ChangeNotifier {
   String? _editAdminCode;
   String? get editAdminCode => _editAdminCode;
 
-
   bool _isEdit = false;
   bool get isEdit => _isEdit;
 
+  bool isNetworkFile(String filePath) {
+    return filePath.startsWith('http') || filePath.startsWith('https');
+  }
+
   void getEditFiles(BuildContext context, String editCode) async {
-    // final getEditController = Provider.of<ViewProvider>(context, listen: false).sendCodeController.text.trim(); 
     final url = '$baseUrl/edit/$editCode';
 
     try {
@@ -74,28 +103,49 @@ class ShareProvider extends ChangeNotifier {
         _editText = editData['text'];
         _shareController.text = editData['text'];
         _editAdminCode = editData['editCode'];
-        final newFiles = editData['images'];
+        final newFiles = (editData['images'] as List).map((img) => ImageData.fromJson(img)).toList();
         debugPrint('Edit files before: $editFiles');
-        _editFiles.addAll(newFiles);
-        
-        // Don't try to cast dynamic list directly to List<File>
-        // Instead, process each item properly if they contain file paths
-        if (newFiles != null && newFiles is List) {
-          debugPrint('New files is list');
-          for (var fileData in newFiles) {
-            if (fileData is Map && fileData.containsKey('url')) {
-              final filePath = fileData['url'];
-              if (filePath != null && filePath is String) {
-                _file.add(File(filePath));
-                debugPrint('New files: $_file');
-              }
+        _file.clear();
+        final Set<String> seenNames = {};
+        debugPrint('New files is list');
+        for (var fileData in newFiles) {
+          final filePath = fileData.url;
+          debugPrint('File path: $filePath');
+          final originalName = fileData.originalName;
+          if (filePath != null && originalName != null) {
+            if (!seenNames.contains(originalName)) {
+              seenNames.add(originalName);
+              final path = filePath.startsWith('http') ? filePath : filePath.replaceAll('file://', '');
+              debugPrint('Adding file: $path with original name: $originalName');
+              _editFiles.add(EditFile(url: path, originalName: originalName));
+              // _file.addAll([File(path)]);
+            } else {
+              debugPrint('Duplicate file skipped by name: $originalName');
             }
+            debugPrint('Edit files after: ${fileData.originalName}');
           }
         }
-        
-        debugPrint('Edit files after: $editFiles');
+        debugPrint('<--------------->');
+        debugPrint('Files after: $_file');
         _editAdminCode = editData['editCode'];
         notifyListeners();
+      } else {
+        debugPrint('Desk has expired and cannot be edited');
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: const Text('Desk has expired and cannot be edited.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        final viewProvider = Provider.of<ViewProvider>(context, listen: false);
+        viewProvider.sendCodeController.clear();
       }
     } catch (error) {
       _isEdit = false;
@@ -104,56 +154,65 @@ class ShareProvider extends ChangeNotifier {
     }
   }
 
+  void onRemove(int index, List<SharedFile> sharedFiles) {
+    if (index < _file.length) {
+      // Remove from local files
+      _file.removeAt(index);
+    } else if (index < _file.length + _editFiles.length) {
+      // Remove from edit files
+      int editIndex = index - _file.length;
+      _editFiles.removeAt(editIndex);
+    } else {
+      // Remove from shared files
+      int sharedIndex = index - _file.length - _editFiles.length;
+      sharedFiles.removeAt(sharedIndex);
+    }
+    notifyListeners();
+  }
+
   Future<void> updateEdit(BuildContext context) async {
     _isLoading = true;
     notifyListeners();
 
     final viewProvider = Provider.of<ViewProvider>(context, listen: false);
 
-
     debugPrint('Update Edit code: $_editAdminCode');
 
-
-    // const baseUrl = ApiConfig.baseUrl;
     final uri = Uri.parse('$baseUrl/edit/$_editAdminCode');
 
     var request = http.MultipartRequest('PUT', uri);
-    if (_editText != _shareController.text) {
-      debugPrint('Text Edited');
-      request.fields['content'] = _shareController.text;
-    }
 
+    // Add text content
+    request.fields['content'] = _shareController.text;
 
+    // Handle files
     if (_editFiles != _file) {
       debugPrint('File Edited');
+      // Create a list to store URLs of network files
+      List<String> networkUrls = [];
+      
       for (var file in _file) {
-      debugPrint("Adding local file");
-      debugPrint("File path: ${file.path}");
-
-      if (file.path.startsWith('http')) {
-        final getImage = await http.get(Uri.parse(file.path));
-        if (getImage.statusCode == 200) {
-          debugPrint("Successfully downloaded file from URL: ${file.path}");
-          request.files.add(
-            http.MultipartFile.fromBytes(
-              'files',
-              getImage.bodyBytes,
-              filename: file.path.split('/').last, // Use name from URL
-            ),
-          );
+        debugPrint("Processing file: ${file.path}");
+        
+        if (file.path.startsWith('http')) {
+          // For network URLs, just add them to the list of URLs
+          debugPrint("Adding network URL: ${file.path}");
+          networkUrls.add(file.path);
         } else {
-          debugPrint("Failed to download file from URL: ${file.path}");
-          debugPrint("Error: ${getImage.statusCode}");
-        }
-        } else {
+          // For local files, add them as multipart files
+          debugPrint("Adding local file: ${file.path}");
           request.files.add(await http.MultipartFile.fromPath('files', file.path));
         }
-        debugPrint("File path: ${file.path}");
+      }
+      
+      // Add network URLs as a JSON array in a field
+      if (networkUrls.isNotEmpty) {
+        request.fields['fileUrls'] = jsonEncode(networkUrls);
+        debugPrint("Added network URLs: $networkUrls");
       }
     }
 
     try {
-
       var response = await request.send();
 
       final responseBody = await response.stream.bytesToString();
@@ -179,11 +238,9 @@ class ShareProvider extends ChangeNotifier {
       throw Exception('Can\'t edit data because: $error');
     } finally {
       _isLoading = false;
-      // _isEdit = false;
       notifyListeners();
     }
   }
-
 
   void submit(BuildContext context) {
     final viewProvider = Provider.of<ViewProvider>(context, listen: false);
@@ -218,7 +275,6 @@ class ShareProvider extends ChangeNotifier {
     }
 
     try {
-
       var response = await request.send();
 
       _isLoading = false;
@@ -353,10 +409,9 @@ class ShareProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       _shareController.clear();
-      // clearFiles(context);
       notifyListeners();
     }
-}
+  }
 
   void addNewHistoryItem(BuildContext context, String generatedCode, Map<String, dynamic> responseData) async {
     debugPrint("Adding new history item");
@@ -382,6 +437,5 @@ class ShareProvider extends ChangeNotifier {
     debugPrint("Saving to updated list");
     // Save the updated list
     historyController.saveHistoryItems(existingHistory);
-}
-
+  }
 }

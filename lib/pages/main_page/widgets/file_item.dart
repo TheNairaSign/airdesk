@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FileItem extends StatelessWidget {
-  const FileItem({super.key, required this.filePath, required this.onRemove});
+  const FileItem({super.key, required this.filePath, required this.onRemove, this.fileName});
   final String filePath;
+  final String? fileName;
   final VoidCallback onRemove;
 
   @override
@@ -18,7 +19,7 @@ class FileItem extends StatelessWidget {
       const SizedBox(width: 15),
       Expanded(
         child: Text(
-          filePath.split('/').last,
+          fileName ?? filePath.split('/').last,
           softWrap: true,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.left,
