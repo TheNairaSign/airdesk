@@ -28,9 +28,7 @@ class SubmissionListTile extends StatelessWidget {
           children: [
             Text(
               formatDate(submission.createdAt ?? ''),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
-              ),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(width: 6),
             const Icon(Icons.circle, size: 4, color: Colors.grey),
@@ -39,9 +37,7 @@ class SubmissionListTile extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               submission.viewCount.toString(),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
-              ),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
             ),
           ],
         ),

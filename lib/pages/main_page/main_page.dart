@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 
 import 'package:air_desk/components/upload__file.dart';
@@ -57,7 +59,7 @@ class _MainPageState extends State<MainPage> {
               onTap: () async {
                 final _accessCode = await _getAccessCode();
                 if (_accessCode != null) {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyDeskCreatorPage(accessCode: _accessCode!)));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyDeskCreatorPage(accessCode: _accessCode)));
                 } else {
                   Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyDeskPage()));
                 }
@@ -158,7 +160,6 @@ class _MainPageState extends State<MainPage> {
                                   } else {
                                     debugPrint('Shared file not found in the list');
                                   }
-                                  receiveProvider.notifyListeners();
                                 });
                               },
                             );

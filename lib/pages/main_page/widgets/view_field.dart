@@ -62,7 +62,6 @@ class _ViewFieldState extends State<ViewField> {
                 border: InputBorder.none
               ),
               onFieldSubmitted: (value) {
-                // viewProvider.fetchData(context, value);
                 viewProvider.updateControllerState(context);
               },
             ),

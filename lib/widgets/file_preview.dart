@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -13,8 +12,9 @@ class FilePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String? imageUrl;
-    if (file.path.startsWith('https')) {
+    if (file.path.startsWith('http')) {
       imageUrl = file.path;
+      debugPrint('ImageUrl  in preview: $imageUrl');
     }
     String fileExtension = file.path.split('.').last.toLowerCase();
 
@@ -25,18 +25,21 @@ class FilePreview extends StatelessWidget {
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
         clipBehavior: Clip.hardEdge,
         child: imageUrl != null
-            ? CachedNetworkImage(
-                imageUrl: imageUrl,
-                alignment: Alignment.center,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => const Center(child: _spinKit),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
-              )
-            : Image.file(
-                file,
-                alignment: Alignment.center,
-                fit: BoxFit.cover,
-              ),
+          ? Image.network(
+              imageUrl,
+              alignment: Alignment.center,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return const Center(child: _spinKit);
+              },
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+            )
+          : Image.file(
+              file,
+              alignment: Alignment.center,
+              fit: BoxFit.cover,
+            ),
       );
     } else {
       return Container(

@@ -9,8 +9,10 @@ import 'dart:io';
 
 import 'package:air_desk/constants.dart';
 import 'package:air_desk/model/image_data.dart';
+import 'package:air_desk/providers/my_desk_provider.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
+import 'package:air_desk/utils/global_colours.dart';
 import 'package:air_desk/utils/success_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -25,20 +27,18 @@ import '../pages/qr_display_page.dart';
 import 'history_provider.dart';
 
 class EditFile {
-  
   final String url;
   final String originalName;
   EditFile({required this.url, required this.originalName});
 }
 
 class ShareProvider extends ChangeNotifier {
-
   void removeEditFileByPath(String url) {
     final removeIndex = _file.indexWhere((f) {
       // if (f.url.startsWith('http')) {
-        debugPrint('Checking URL: ${f.path}');
-        debugPrint('Against: $url');
-        return f.path == url;
+      debugPrint('Checking URL: ${f.path}');
+      debugPrint('Against: $url');
+      return f.path == url;
       // }
       // return f.url == url;
     });
@@ -51,7 +51,7 @@ class ShareProvider extends ChangeNotifier {
 
   bool _isLoading = false;
 
-  bool get isLoading => _isLoading; 
+  bool get isLoading => _isLoading;
 
   final _shareController = TextEditingController();
   TextEditingController get shareController => _shareController;
@@ -71,7 +71,10 @@ class ShareProvider extends ChangeNotifier {
   final List<EditFile> _editFiles = [];
   List<EditFile> get editFiles => _editFiles;
 
-  String _editText = '';
+  List<EditFile> _initialEditFiles = [];
+
+  
+  final String _editText = '';
   String get editText => _editText;
 
   String? _editAdminCode;
@@ -100,7 +103,7 @@ class ShareProvider extends ChangeNotifier {
 
         debugPrint('Edit files gotten successfully');
         final editData = responseBody['data'];
-        _editText = editData['text'];
+        _initialEditFiles = (editData['images'] as List).map((img) => EditFile(url: img['url'], originalName: img['originalName'])).toList();
         _shareController.text = editData['text'];
         _editAdminCode = editData['editCode'];
         final newFiles = (editData['images'] as List).map((img) => ImageData.fromJson(img)).toList();
@@ -117,12 +120,12 @@ class ShareProvider extends ChangeNotifier {
               seenNames.add(originalName);
               final path = filePath.startsWith('http') ? filePath : filePath.replaceAll('file://', '');
               debugPrint('Adding file: $path with original name: $originalName');
-              _editFiles.add(EditFile(url: path, originalName: originalName));
-              // _file.addAll([File(path)]);
+              _editFiles.add(EditFile(url: fileData.url!, originalName: originalName));
+              notifyListeners();
             } else {
               debugPrint('Duplicate file skipped by name: $originalName');
             }
-            debugPrint('Edit files after: ${fileData.originalName}');
+            debugPrint('Edit files after: ${fileData.url}');
           }
         }
         debugPrint('<--------------->');
@@ -138,8 +141,13 @@ class ShareProvider extends ChangeNotifier {
             content: const Text('Desk has expired and cannot be edited.'),
             actions: [
               TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: GlobalColours.errorColor.withOpacity(.1),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                ),
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
+                child: Text('OK', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: GlobalColours.errorColor)),
+
               ),
             ],
           ),
@@ -170,6 +178,18 @@ class ShareProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Returns a list of EditFile objects that were newly added and not present in the initial files
+  // by comparing URLs between current _editFiles and _initialEditFiles
+  List<EditFile> getEditedFiles() {
+    // Create a Set of URLs from initial files for efficient lookup
+    final editPaths = _editFiles.map((e) => e.url).toSet();
+
+    final removed = _initialEditFiles.where((f) => !editPaths.contains(f.url)).toList();
+    debugPrint('Removed Files: $removed with length: ${removed.length}');
+
+    return removed;
+  }
+
   Future<void> updateEdit(BuildContext context) async {
     _isLoading = true;
     notifyListeners();
@@ -182,65 +202,69 @@ class ShareProvider extends ChangeNotifier {
 
     var request = http.MultipartRequest('PUT', uri);
 
-    // Add text content
     request.fields['content'] = _shareController.text;
 
-    // Handle files
-    if (_editFiles != _file) {
-      debugPrint('File Edited');
-      // Create a list to store URLs of network files
-      List<String> networkUrls = [];
-      
-      for (var file in _file) {
-        debugPrint("Processing file: ${file.path}");
-        
-        if (file.path.startsWith('http')) {
-          // For network URLs, just add them to the list of URLs
-          debugPrint("Adding network URL: ${file.path}");
-          networkUrls.add(file.path);
-        } else {
-          // For local files, add them as multipart files
-          debugPrint("Adding local file: ${file.path}");
-          request.files.add(await http.MultipartFile.fromPath('files', file.path));
-        }
-      }
-      
-      // Add network URLs as a JSON array in a field
-      if (networkUrls.isNotEmpty) {
-        request.fields['fileUrls'] = jsonEncode(networkUrls);
-        debugPrint("Added network URLs: $networkUrls");
-      }
+    final List<String> removedFiles = [];
+
+    for (var editedFiles in getEditedFiles()) {
+      final lastSegment = Uri.parse(editedFiles.url).pathSegments.last;
+      removedFiles.add(lastSegment);
+      debugPrint('$removedFiles');
+    }
+
+    request.fields['imagesToRemove'] = json.encode(removedFiles);
+
+    for (var file in _file) {
+      debugPrint("Adding local file");
+      request.files.add(await http.MultipartFile.fromPath('files', file.path));
+      debugPrint("File path: ${file.path}");
     }
 
     try {
+      debugPrint("Request fields: ${request.fields}");
+      debugPrint("Total files to upload: ${request.files.length}");
+
+      // Send the request and get the response
       var response = await request.send();
-
-      final responseBody = await response.stream.bytesToString();
-      final responseJson = jsonDecode(responseBody);
-      debugPrint('Response body: $responseJson');
-
       _isLoading = false;
       notifyListeners();
-
+      debugPrint("Response status code: ${response.statusCode}");
+      debugPrint("Request Response: ${response.request}");
       if (response.statusCode == 200) {
-        debugPrint('...Edit data successful...');
-        _shareController.clear();
+        debugPrint('Edit updated successfully');
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Success'),
+            content: const Text('Edit updated successfully.'),
+            actions: [
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: GlobalColours.secondaryGreen.withOpacity(.1),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('OK', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: GlobalColours(context).textColorForContainer)),
+              ),
+            ],
+          ),
+        );
         viewProvider.sendCodeController.clear();
-        clearFiles(context);
+        _editAdminCode = '';
         _isEdit = false;
+        _initialEditFiles.clear();
+        _editFiles.clear();
+        _shareController.clear();
+        _file.clear();
         notifyListeners();
       }
     } catch (error) {
-      debugPrint('Error Sending edited data: $error');
       _isLoading = false;
       notifyListeners();
-
-      throw Exception('Can\'t edit data because: $error');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      debugPrint('Update Edit failed: $error');
     }
   }
+
 
   void submit(BuildContext context) {
     final viewProvider = Provider.of<ViewProvider>(context, listen: false);
@@ -260,6 +284,32 @@ class ShareProvider extends ChangeNotifier {
   void submitToDesk(BuildContext context, String deskName) async {
     _isLoading = true;
     notifyListeners();
+    final deskExists = Provider.of<MyDeskProvider>(context, listen: false).deskExists;
+
+    if (!deskExists) {
+      // showDialog(
+      //     context: context,
+      //     builder: (context) => AlertDialog(
+      //       title: const Text('Invalid myDesk'),
+      //       content: Text('User with MyDesk: $deskName does not exist.'),
+      //       actions: [
+      //         TextButton(
+      //           style: TextButton.styleFrom(
+      //             backgroundColor: GlobalColours.secondaryGreen.withOpacity(.1),
+      //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+      //           ),
+      //           onPressed: () => Navigator.of(context).pop(),
+      //           child: Text('OK', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: GlobalColours(context).textColorForContainer)),
+      //         ),
+      //       ],
+      //     ),
+      //   );
+      return;
+    }
+
+    final viewProvider = Provider.of<ViewProvider>(context, listen: false);
+    final controller = viewProvider.sendCodeController;
+
 
     const config = 'https://airdesk-be.onrender.com/api/';
     deskName = deskName.replaceAll('@', '');
@@ -281,24 +331,25 @@ class ShareProvider extends ChangeNotifier {
       notifyListeners();
 
       if (response.statusCode == 200) {
-        _shareController.clear();
-        clearFiles(context);
+        showSuccessDialog(
+          context, 
+          deskName: deskName, 
+          fileNames: file.map((f) => f.path).toList(), 
+          content: _shareController.text,
+          onPop: () {
+            Navigator.of(context).pop();
+            _shareController.clear();
+            viewProvider.resetControllerState();
+            controller.clear();
+            clearFiles(context);
+          }
+        );
       }
     } catch (error) {
       debugPrint('Error Sending edited data: $error');
       _isLoading = false;
       notifyListeners();
       throw Exception('Can\'t edit data because: $error');
-    } finally {
-      _shareController.clear();
-      clearFiles(context);
-      showSuccessDialog(
-        context, 
-        deskName: deskName, 
-        fileNames: file.map((f) => f.path).toList(), 
-        content: _shareController.text
-      );
-      notifyListeners();
     }
   }
 
@@ -371,7 +422,7 @@ class ShareProvider extends ChangeNotifier {
         var responseBody = await response.stream.bytesToString();
         final responseData = jsonDecode(responseBody);
         debugPrint("Status: $responseBody");
-        
+
         final generatedCode = responseData["data"]["code"];
         final editCode = responseData["data"]["editCode"];
 

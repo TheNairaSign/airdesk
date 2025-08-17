@@ -19,6 +19,9 @@ class GlobalColours {
   static const Color warningColor = Color(0xFFF0AD4E);
   static const Color infoColor = Color(0xFF5BC0DE);
 
+  static const Color secondaryGreen = Color(0xff069383);
+
+
   bool get _isDarkMode => MediaQuery.of(context).platformBrightness == Brightness.dark;
 
 

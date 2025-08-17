@@ -160,6 +160,12 @@ class ViewProvider extends ChangeNotifier {
   bool _changeControllerState = false;
   bool get changeControllerState => _changeControllerState;
 
+  void resetControllerState() {
+    _changeControllerState = false;
+    debugPrint('Reset controller State to: $_changeControllerState');
+    notifyListeners();
+  }
+
   void deskNameListener(BuildContext context) {
     final myDeskProvider = Provider.of<MyDeskProvider>(context, listen: false);
 

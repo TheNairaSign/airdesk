@@ -1,6 +1,8 @@
 import 'package:air_desk/constants.dart';
+import 'package:air_desk/providers/my_desk_provider.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
+import 'package:air_desk/providers/view_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -11,6 +13,8 @@ class SendButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final deskProvider = Provider.of<ViewProvider>(context);
+    final sendToDesk = deskProvider.changeControllerState;
     
     const spinKit = SpinKitThreeBounce(
       color: Colors.white,
@@ -19,7 +23,9 @@ class SendButton extends StatelessWidget {
 
     return Consumer<ShareProvider>(
       builder: (context, shareProvider, child) {
-        final color = shareProvider.isEdit ? const Color(0xff069383) : primaryBlue;
+        
+        final deskExists = context.watch<MyDeskProvider>().deskExists;
+        final color = sendToDesk ? deskExists ? primaryBlue : Colors.red : (shareProvider.isEdit ? const Color(0xff069383) : primaryBlue);
 
         return Positioned(
           right: 15,
@@ -30,7 +36,7 @@ class SendButton extends StatelessWidget {
                 onTap: shareProvider.isLoading ? null : () async {
                   FocusScope.of(context).unfocus();
                   debugPrint("Sending Data");
-                  if(shareProvider.shareController.text.isNotEmpty || shareProvider.file.isNotEmpty || rp.sharedFiles.isNotEmpty) {
+                  if(shareProvider.shareController.text.isNotEmpty || shareProvider.file.isNotEmpty || rp.sharedFiles.isNotEmpty || shareProvider.editFiles.isNotEmpty) {
                     shareProvider.submit(context);
                     // if(shareProvider.isEdit) {
                     //   await shareProvider.updateEdit(context);
