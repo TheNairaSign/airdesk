@@ -1,6 +1,5 @@
 import 'package:air_desk/model/desk_location.dart';
 import 'package:air_desk/model/image_data.dart';
-import 'package:air_desk/model/image_model.dart';
 
 class DeskData {
   final String? code;
@@ -57,19 +56,19 @@ class DeskData {
   }
 
   Map<String, dynamic> toJson() => {
-        'code': code,
-        'editCode': editCode,
-        'deskType': deskType,
-        'isDeskSubmission': isDeskSubmission,
-        'myDeskCode': myDeskCode,
-        'isMyDesk': isMyDesk,
-        'text': text,
-        'images': images?.map((img) => img.toJson()).toList(),
-        'viewCount': viewCount,
-        'location': location?.toJson(),
-        '_id': id,
-        'createdAt': createdAt?.toIso8601String(),
-        'updatedAt': updatedAt?.toIso8601String(),
-        '__v': v,
-      };
+    'code': code,
+    'editCode': editCode,
+    'deskType': deskType,
+    'isDeskSubmission': isDeskSubmission,
+    'myDeskCode': myDeskCode,
+    'isMyDesk': isMyDesk,
+    'text': text,
+    'images': images?.map((img) => img.toJson()).toList(),
+    'viewCount': viewCount,
+    'location': location?.toJson(),
+    '_id': id,
+    'createdAt': createdAt?.toIso8601String(),
+    'updatedAt': updatedAt?.toIso8601String(),
+    '__v': v,
+  };
 }

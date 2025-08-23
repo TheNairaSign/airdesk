@@ -1,9 +1,7 @@
 import 'package:air_desk/model/image_data.dart';
 import 'package:air_desk/pages/data_page/widgets/file_preview_container.dart';
-import 'package:air_desk/utils/file_type.dart';
 import 'package:flutter/material.dart';
 
-import '../../../model/image_model.dart';
 import '../../../widgets/download_file.dart';
 
 class FileDisplayContainer extends StatelessWidget {
@@ -17,7 +15,7 @@ class FileDisplayContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    CustomFileType fileType = CustomFileType();
+    // CustomFileType fileType = CustomFileType();
     // Widget content = fileType.isImageFile(imageUrl)? 
     return ListView.separated(
       separatorBuilder: (context, index) => const SizedBox(height: 10),

@@ -1,9 +1,10 @@
 class CreateDesk {
-  final String publicCode; 
-  final String adminCode;
+  final String? publicCode; 
+  final String? adminCode;
+  
   const CreateDesk({
-    required this.publicCode,
-    required this.adminCode,
+    this.publicCode,
+    this.adminCode,
   });
 
   factory CreateDesk.fromJson(Map<String, dynamic> json) {

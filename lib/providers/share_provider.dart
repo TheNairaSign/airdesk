@@ -137,8 +137,8 @@ class ShareProvider extends ChangeNotifier {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Error'),
-            content: const Text('Desk has expired and cannot be edited.'),
+            title: const Text('Invalid'),
+            content: const Text('Desk has expired and cannot be found.'),
             actions: [
               TextButton(
                 style: TextButton.styleFrom(
@@ -147,7 +147,6 @@ class ShareProvider extends ChangeNotifier {
                 ),
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text('OK', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: GlobalColours.errorColor)),
-
               ),
             ],
           ),
@@ -286,7 +285,7 @@ class ShareProvider extends ChangeNotifier {
     notifyListeners();
     final deskExists = Provider.of<MyDeskProvider>(context, listen: false).deskExists;
 
-    if (!deskExists) {
+    if (deskExists == false) {
       // showDialog(
       //     context: context,
       //     builder: (context) => AlertDialog(

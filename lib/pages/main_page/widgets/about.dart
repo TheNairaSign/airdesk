@@ -6,15 +6,15 @@ class About extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 10),
+      margin: const EdgeInsets.symmetric(vertical: 10),
       padding: const EdgeInsets.all(20),
-      height: 330,
       width: double.infinity,
       decoration: BoxDecoration(
         color: GlobalColours(context).aboutContainer,
         borderRadius: const BorderRadius.all(Radius.circular(20)),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Image.asset("assets/folders.png"),

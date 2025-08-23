@@ -1,11 +1,9 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously, unused_local_variable
 
 import 'package:air_desk/model/image_data.dart';
-import 'package:air_desk/model/image_model.dart';
 import 'package:air_desk/pages/data_page/widgets/content_container.dart';
 import 'package:air_desk/pages/data_page/widgets/file_display_container.dart';
 import 'package:air_desk/providers/view_provider.dart';
-import 'package:air_desk/utils/file_type.dart';
 import 'package:air_desk/widgets/airdesk_and_logo.dart';
 import 'package:air_desk/pages/main_page/widgets/code_container.dart';
 import 'package:flutter/material.dart';

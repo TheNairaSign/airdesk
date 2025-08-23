@@ -1,6 +1,5 @@
-import 'package:air_desk/pages/main_page/my_desk/access_my_desk_screen.dart';
-import 'package:air_desk/pages/main_page/my_desk/desk_creation_page.dart';
-import 'package:air_desk/pages/main_page/my_desk/my_desk_created_page.dart';
+import 'package:air_desk/pages/main_page/my_desk/dialogs/access_dialog.dart';
+import 'package:air_desk/pages/main_page/my_desk/dialogs/creation_dialog.dart';
 import 'package:air_desk/pages/main_page/my_desk/widgets/about_my_desk.dart';
 import 'package:air_desk/utils/global_colours.dart';
 import 'package:flutter/material.dart';
@@ -28,61 +27,45 @@ class _MyDeskPageState extends State<MyDeskPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text('MyDesk', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 32, fontWeight: FontWeight.bold)), 
         forceMaterialTransparency: true,
       ),
-      body: ListView(
-        children: [
-          SizedBox(
-            height: 245,
-            child: PageView(
-              controller: pageController,
-              physics: const NeverScrollableScrollPhysics(),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ListView(
+          children: [
+            Text(
+              'Your personal space for receiving and managing content',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 16, color: Colors.grey[700]),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              spacing: 10,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Your personal space for receiving and managing content',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 16, color: Colors.grey[700]),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        spacing: 10,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          MyDeskCard(
-                            icon: Icons.add,
-                            title: 'Create MyDesk',
-                            description:
-                                'Get your personal desk with a custom code for receiving content',
-                            iconColor: Colors.green,
-                            onPressed: () => animateToPage(1), // Add action
-                          ),
-                          MyDeskCard(
-                            icon: Icons.lock_outline,
-                            title: 'Access MyDesk',
-                            description:
-                                'View and download submissions sent to your MyDesk',
-                            iconColor: Colors.blue,
-                            onPressed: () => animateToPage(2), // Add action
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                MyDeskCard(
+                  icon: Icons.add,
+                  title: 'Create MyDesk',
+                  description: 'Get your personal desk with a custom code for receiving content',
+                  iconColor: Colors.green,
+                  onPressed: () => showCreationDialog(context),
                 ),
-                const MyDeskCreationScreen(),
-                const AccessMyDeskScreen(),
-                const MyDeskCreatedPage()
+                MyDeskCard(
+                  icon: Icons.lock_outline,
+                  title: 'Access MyDesk',
+                  description: 'View and download submissions sent to your MyDesk',
+                  iconColor: Colors.blue,
+                  onPressed: () => showAccessDialog(context),
+                ),
               ],
             ),
-          ),
-          const AboutMyDesk()
-        ],
+            const SizedBox(height: 25),
+            const AboutMyDesk()
+          ],
+        ),
       ),
     );
   }

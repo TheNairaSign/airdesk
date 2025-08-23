@@ -1,4 +1,4 @@
-import 'dart:math';
+// import 'dart:math';
 
 import 'package:air_desk/pages/main_page/my_desk/desk_creation_page.dart';
 import 'package:air_desk/providers/my_desk_provider.dart';
@@ -147,9 +147,9 @@ class _DeskCreationFormState extends State<DeskCreationForm> {
   }
 }
 
-String _generateAutoCode() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  final random = Random();
-  return String.fromCharCodes(Iterable.generate(
-    8, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
-}
+// String _generateAutoCode() {
+//   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+//   final random = Random();
+//   return String.fromCharCodes(Iterable.generate(
+//     8, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+// }

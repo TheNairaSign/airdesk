@@ -11,24 +11,24 @@ class DeskValidContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<MyDeskProvider>(
       builder: (context, myDeskProvider, child) {
-        final color = myDeskProvider.deskExists ? primaryBlue : Colors.red;
+        final color = myDeskProvider.deskExists == true ? primaryBlue : Colors.red;
+        final width = MediaQuery.of(context).size.width;
 
         return Container(
           height: 30,
-          width: 220,
+          constraints: BoxConstraints(maxWidth: width * 0.7),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: color.withOpacity(.1),
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: color)
+            border: Border.all(color: color, width: .7)
           ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.work_outline_sharp, size: 12, color: color,),
-        
               const SizedBox(width: 5),
-              Text(myDeskProvider.deskExists ? 'Sending to myDesk: $deskName' : 'Desk: $deskName not found', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: color),)
-
+              Text(myDeskProvider.deskExists == true ? 'Sending to myDesk: $deskName' : 'Desk: $deskName not found', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: color),)
             ],
           ),
         );

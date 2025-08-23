@@ -44,10 +44,6 @@ class ViewProvider extends ChangeNotifier {
   // bool _deskCredValid = false;
   // bool get deskCredValid => _deskCredValid;
 
-  void sendToDesk() async {
-    
-  }
-
   bool _isLoading = false;
   bool get isLoading => _isLoading; 
 

@@ -52,6 +52,7 @@ class EmptyState extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.inbox_outlined,

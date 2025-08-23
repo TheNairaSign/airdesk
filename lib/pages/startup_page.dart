@@ -15,7 +15,7 @@ class _StartUpPageState extends State<StartUpPage> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 5), () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const NavigationPage())));
+    Future.delayed(const Duration(seconds: 5), () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const NavigationPage(), settings: const RouteSettings(name: '/navigation'))));
   }
   @override
   Widget build(BuildContext context) {

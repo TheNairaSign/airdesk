@@ -25,7 +25,7 @@ class SendButton extends StatelessWidget {
       builder: (context, shareProvider, child) {
         
         final deskExists = context.watch<MyDeskProvider>().deskExists;
-        final color = sendToDesk ? deskExists ? primaryBlue : Colors.red : (shareProvider.isEdit ? const Color(0xff069383) : primaryBlue);
+        final color = sendToDesk ? deskExists == true? primaryBlue : Colors.red : (shareProvider.isEdit ? const Color(0xff069383) : primaryBlue);
 
         return Positioned(
           right: 15,

@@ -56,22 +56,22 @@ class _MainPageState extends State<MainPage> {
         appBar: AppBar(
           forceMaterialTransparency: true,
           leading: GestureDetector(
-              onTap: () async {
-                final _accessCode = await _getAccessCode();
-                if (_accessCode != null) {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyDeskCreatorPage(accessCode: _accessCode)));
-                } else {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyDeskPage()));
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                child: CircleAvatar(
-                  radius: 30,
-                  child: Image.network(placeholderProfilePic),
-                ),
+            onTap: () async {
+              final _accessCode = await _getAccessCode();
+              if (_accessCode != null) {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MyDeskCreatorPage()));
+              } else {
+                Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyDeskPage()));
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              child: CircleAvatar(
+                radius: 30,
+                child: Image.network(placeholderProfilePic),
               ),
             ),
+          ),
           actions: [
             Text("How it works", style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16)),
             const SizedBox(width: 10),
@@ -92,7 +92,7 @@ class _MainPageState extends State<MainPage> {
         body: Consumer<ShareProvider>(
           builder: (context, cP, child) {
             return Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20),
+              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
@@ -100,7 +100,7 @@ class _MainPageState extends State<MainPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 30),
                     child: Text(
-                      "Share links, texts and files between devices and people instantly.",
+                      "Share links, texts and files between internet devices and people instantly.",
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
                     ),

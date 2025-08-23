@@ -29,7 +29,7 @@ class MyDeskProvider extends ChangeNotifier {
   final _accessDeskController = TextEditingController();
   TextEditingController get accessDeskController => _accessDeskController;
 
-  bool _isLoading = false;
+  final bool _isLoading = false;
   bool get isLoading => _isLoading;
 
   bool _deskNameValid = false;
@@ -81,105 +81,163 @@ class MyDeskProvider extends ChangeNotifier {
     return buffer.toString();
   }
 
-  String _publicCode = '';
-  String get public => _publicCode;
+  String? _publicCode = '';
+  String? get public => _publicCode;
 
-  String _adminCode = '';
-  String get admin => _adminCode;
+  String? _adminCode = '';
+  String? get admin => _adminCode;
 
-  // bool _isLoading = false;
-  // bool get isLoading => _isLoading;
+  bool _createLoading = false;
+  bool get createLoading => _createLoading;
 
   Future<void> createDesk(BuildContext context) async {
-    _isLoading = true;
+    _createLoading = true;
     notifyListeners();
 
-    const config = ApiConfig.getData;
-    const url = '${config}create';
+    const baseUrl = 'https://airdesk-be.onrender.com/api/myDesk';
+
+    const url = '$baseUrl/create';
+
+    debugPrint('Desk creation code: ${ _createDeskController.text}');
 
     try {
       final response = await http.post(
         Uri.parse(url),
-        body: {
+        body: jsonEncode({
           'customCode': _createDeskController.text,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
         },
       );
-      _isLoading = false;
+      _createLoading = false;
       notifyListeners();
+
+      final json = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         debugPrint('Desk created successfully');
-        final json = jsonDecode(response.body);
-        final desk = CreateDesk.fromJson(json);
+        debugPrint('Create Desk Response: $json');
+
+        final desk = CreateDesk.fromJson(json['data']);
         debugPrint('Create Desk Response: $desk');
+
         _publicCode = desk.publicCode;
         _adminCode = desk.adminCode;
+        debugPrint('Public Code: $_publicCode');
+        debugPrint('Admin Code: $_adminCode');
 
         notifyListeners();
         _createDeskController.clear();
-
+        Navigator.of(context).pop();
         Navigator.push(context, MaterialPageRoute(builder: (context) => const MyDeskCreatedPage()));
 
         
+      } else if (response.statusCode == 500 && json['message'].toString().contains('already taken')) {
+        _deskExists = true;
+        notifyListeners();
+        debugPrint('Desk already exists with status code: ${response.statusCode}');
+        _createLoading = false;
+        notifyListeners();
       } else {
+        _createLoading = false;
+        notifyListeners();
         debugPrint('Failed to create desk: ${response.statusCode}');
         debugPrint('Response body: ${response.body}');
       }
 
     } on http.ClientException catch (e) {
       debugPrint('Failed to create desk: $e');
+      _createLoading = false;
+      notifyListeners();
+    } finally {
+      // _createDeskController.clear();
+      // _deskExists = false;
+      notifyListeners();
     }
   }
 
   MyDeskData? _myDeskData;
   MyDeskData? get myDeskData => _myDeskData;
 
-  Future<MyDeskData?> getCreatorDesks(BuildContext context, {bool load = true, String? accessCode}) async {
+  bool _accessLoading = false;
+  bool get accessLoading => _accessLoading;
 
-    if (load) {
-      _isLoading = true;
-      notifyListeners();
-    }
-
-    final adminCode = accessCode ?? _accessDeskController.text;
-
-
-    const config = ApiConfig.baseUrl;
-    final url = '$config/api/myDesk/admin/$adminCode';
-
+  Future<MyDeskData?> getCreatorDesks(BuildContext context, {bool load = true}) async {
     try {
+      // Get stored access code or use input
+      final prefs = await SharedPreferences.getInstance();
+      final existing = prefs.getString('accessCode');
+      // final adminCode = existing ?? _accessDeskController.text;
+      String? adminCode = _accessDeskController.text;
+
+      if (_accessDeskController.text.isEmpty) {
+        debugPrint('Access field is empty...');
+        adminCode = existing;
+      }
+
+      // Set loading state if needed
+      if (load) {
+        _accessLoading = true;
+        notifyListeners();
+      }
+
+      // Make API request
+      final url = '${ApiConfig.baseUrl}/api/myDesk/admin/$adminCode';
       final response = await http.get(Uri.parse(url));
       final body = json.decode(response.body);
-      debugPrint('Get creator desk body: $body');
+      
+      // Update desk data
       _myDeskData = MyDeskData.fromJson(body['data']);
       notifyListeners();
 
-      if (load) {
-        _isLoading = false;
-        notifyListeners();
-        if (_myDeskData != null) {
-          storeAccessCode(adminCode);
-          Navigator.push(context, MaterialPageRoute(builder: (context) => const MyDeskCreatorPage()));
-        } else {
-          snackBar('Desk does not exist', context, isError: true);
-          _accessDeskController.clear();
+      // Handle successful response
+      if (_myDeskData != null) {
+        // Store new access code if needed
+        if (load) {
+          if (existing != adminCode && adminCode != null) {
+            debugPrint('Storing new access code: $adminCode');
+            await storeAccessCode(adminCode);
+          }
         }
+
+        // Navigate if loading
+        if (load) {
+          Navigator.of(context)
+            ..pop()
+            ..push(MaterialPageRoute(
+              builder: (context) => const MyDeskCreatorPage(),
+            ));
+        }
+      } else {
+        snackBar('Desk does not exist', context, isError: true);
+        _accessDeskController.clear();
       }
+
       return _myDeskData;
+
     } on http.ClientException catch (error) {
-      if (load) {
-        _isLoading = false;
-        notifyListeners();
-      }
       debugPrint('Error getting creator desks: $error');
       return null;
+      
+    } finally {
+      if (load) {
+        _accessLoading = false;
+        _accessDeskController.clear();
+        notifyListeners();
+      }
     }
   }
 
-  bool _deskExists = false;
-  bool get deskExists => _deskExists;
+  bool? _deskExists;
+  bool? get deskExists => _deskExists;
 
-  Future<void> checkDesk(BuildContext context, String deskName) async {
+  bool _checkingDesk = false;
+  bool get checkingDesk => _checkingDesk;
+
+  Future<bool?> checkDesk(BuildContext context, String deskName) async {
+    _checkingDesk = true;
+    notifyListeners();
     const config = ApiConfig.baseUrl;
     // Constructs API URL and removes any @ symbols from the desk name for validation
     final url = '$config/api/myDesk/check/$deskName'.replaceAll('@', '');
@@ -188,20 +246,26 @@ class MyDeskProvider extends ChangeNotifier {
       final response = await http.get(Uri.parse(url));
       final body = json.decode(response.body);
       debugPrint('Get creator desk body: $body');
+      _checkingDesk = false;
+      notifyListeners();
       if (body['data']['exists'] == false) {
         _deskExists = false;
         debugPrint('Desk does not exist');
         snackBar('Desk does not exist', context, isError: true);
         notifyListeners();
+        return false;
       } else {
         debugPrint('Desk exists');
         _deskExists = true;
-        snackBar('Desk exists', context);
         notifyListeners();
+        return true;
       }
     } on http.ClientException catch (error) {
       debugPrint('Error getting creator desks: $error');
       snackBar('Error getting creator desks', context, isError: true);
+      _checkingDesk = false;
+      notifyListeners();
+      return null;
     }
   }
 
@@ -214,5 +278,6 @@ class MyDeskProvider extends ChangeNotifier {
   void dispose() {
     super.dispose();
     _createDeskController.dispose();
+    _accessDeskController.dispose();
   }
 }

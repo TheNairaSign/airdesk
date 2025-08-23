@@ -24,14 +24,14 @@ class _ViewFieldState extends State<ViewField> {
 
     return Consumer<ViewProvider>(
       builder: (context, viewProvider, child) {
-        final deskExists = context.watch<MyDeskProvider>().deskExists;
+        final deskExists = context.watch<MyDeskProvider>().deskExists == true;
         final color = deskExists ? primaryBlue : Colors.red;
         
         final colors = sendToDesk ? deskExists ? color : Colors.red : const Color(0xff069383);
         final backgroundColor = sendToDesk ? deskExists ? color.withOpacity(.1) : Colors.red.withOpacity(.1) : Colors.grey.withOpacity(.1);
         return Container(
           height: 40,
-          padding: const EdgeInsets.all(8),
+          // padding: const EdgeInsets.all(8),
           margin: const EdgeInsets.fromLTRB(0, 20, 0, 20),
           width: width,
           decoration: BoxDecoration(
@@ -56,8 +56,9 @@ class _ViewFieldState extends State<ViewField> {
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: colors, fontWeight: FontWeight.bold),
               decoration: InputDecoration(
+                contentPadding: const EdgeInsets.all(12),
                 hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
-                hintText: 'Paste QR code and enter to view',
+                hintText: 'Enter code to view/edit or @userDesk',
                 enabled: true,
                 border: InputBorder.none
               ),

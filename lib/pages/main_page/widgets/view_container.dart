@@ -46,10 +46,10 @@ class _ViewContainerState extends State<ViewContainer> {
 
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    final size = MediaQuery.of(context).size;
-    final double width = size.width;
     final shareProvider = Provider.of<ShareProvider>(context);
     final controller = shareProvider.shareController;
+
+    final scrollController = ScrollController();
 
     return GestureDetector(
       onTap: () {
@@ -78,32 +78,43 @@ class _ViewContainerState extends State<ViewContainer> {
                     DeskValidContainer(deskName: viewProvider.sendCodeController.text)
                     else 
                     const StatusSwitch(),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: width * 0.68,
-                      child: TextFormField(
-                        focusNode: _focusNode,
-                        controller: controller,
-                        textDirection: TextDirection.ltr,
-                        keyboardType: TextInputType.multiline,
-                        enabled: true,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: GlobalColours(context).textColorForContainer),
-                        maxLines: null,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.transparent,
-                          hintText: viewProvider.changeControllerState ? "Share contents to ${viewProvider.sendCodeController.text}" : "Share Desk",
-
-                          hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.grey[700],
-                            fontSize: 17,
+                    const SizedBox(height: 20),
+                    Expanded(
+                      child: Scrollbar(
+                        controller: scrollController,
+                        interactive: true,
+                        radius: const Radius.circular(10),
+                        thumbVisibility: true,
+                        child: TextFormField(
+                          focusNode: _focusNode,
+                          scrollController: scrollController,
+                          controller: controller,
+                          textDirection: TextDirection.ltr,
+                          keyboardType: TextInputType.multiline,
+                          scrollPadding: const EdgeInsets.only(bottom: 100),
+                          scrollPhysics: const BouncingScrollPhysics(),
+                          enabled: true,
+                          expands: true,
+                          cursorColor: GlobalColours.secondaryGreen,
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: GlobalColours(context).textColorForContainer),
+                          maxLines: null,
+                          decoration: InputDecoration(
+                            filled: true,
+                            isDense: true,
+                            fillColor: Colors.transparent,
+                            hintText: viewProvider.changeControllerState ? "Share contents to ${viewProvider.sendCodeController.text}" : "Share Desk",
+                                              
+                            hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: Colors.grey[700],
+                              fontSize: 17,
+                            ),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
                           ),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
                         ),
                       ),
                     ),
-                    const Spacer(),
+                    // const Spacer(),
                     // if (shareProvider.isEdit)
                     const ViewField(),
                   ],
