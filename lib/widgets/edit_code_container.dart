@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 
 class EditCodeContainer extends StatelessWidget {
   final String editCode;
+  final String? title, description;
+  final double? width; 
 
-  const EditCodeContainer({super.key, required this.editCode});
+  const EditCodeContainer({super.key, required this.editCode, this.title, this.description, this.width});
 
 
   @override
@@ -14,28 +16,29 @@ class EditCodeContainer extends StatelessWidget {
 
     return Center(
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         margin: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: GlobalColours(context).containerColor,
           borderRadius: BorderRadius.circular(12),
         ),
-        width: 320,
+        width: width ?? 320,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Title
             Text(
-              "Edit Code (For creators only)",
+              title ?? "Edit Code (For creators only)",
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
 
             // Code display with Copy button
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: isDark ? Theme.of(context).scaffoldBackgroundColor : Colors.grey[200],
                 borderRadius: BorderRadius.circular(8),
@@ -59,11 +62,11 @@ class EditCodeContainer extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
             // Footer text
             Text(
-              "Use this code edit your live desk content later",
+              description ?? "Use this code edit your live desk content later",
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.grey,

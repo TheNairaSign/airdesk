@@ -14,10 +14,6 @@ class MyDeskPage extends StatefulWidget {
 class _MyDeskPageState extends State<MyDeskPage> {
   final pageController = PageController();
 
-  void animateToPage(int page) {
-    pageController.animateToPage(page, duration: const Duration(milliseconds: 300), curve: Curves.ease);
-  }
-
   @override
   void dispose() {
     pageController.dispose();
@@ -29,42 +25,48 @@ class _MyDeskPageState extends State<MyDeskPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
+        centerTitle: true,
         title: Text('MyDesk', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 32, fontWeight: FontWeight.bold)), 
         forceMaterialTransparency: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ListView(
-          children: [
-            Text(
-              'Your personal space for receiving and managing content',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 16, color: Colors.grey[700]),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              spacing: 10,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                MyDeskCard(
-                  icon: Icons.add,
-                  title: 'Create MyDesk',
-                  description: 'Get your personal desk with a custom code for receiving content',
-                  iconColor: Colors.green,
-                  onPressed: () => showCreationDialog(context),
-                ),
-                MyDeskCard(
-                  icon: Icons.lock_outline,
-                  title: 'Access MyDesk',
-                  description: 'View and download submissions sent to your MyDesk',
-                  iconColor: Colors.blue,
-                  onPressed: () => showAccessDialog(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 25),
-            const AboutMyDesk()
-          ],
+    body: PopScope(
+        canPop: true,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context).popUntil((route) => route.settings.name == '/navigation');
+            });
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: ListView(
+            children: [
+              Text(
+                'Your personal space for receiving and\nmanaging content',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 18, color: GlobalColours(context).textColorForContainer),
+              ),
+              const SizedBox(height: 20),
+              MyDeskCard(
+                icon: Icons.add,
+                title: 'Create MyDesk',
+                description: 'Get your personal desk with a custom code for receiving content',
+                iconColor: Colors.green,
+                onPressed: () => showCreationDialog(context),
+              ),
+              const SizedBox(height: 15),
+              MyDeskCard(
+                icon: Icons.lock_outline,
+                title: 'Access MyDesk',
+                description: 'View and download submissions sent to your MyDesk',
+                iconColor: Colors.blue,
+                onPressed: () => showAccessDialog(context),
+              ),
+              const SizedBox(height: 15),
+              const AboutMyDesk()
+            ],
+          ),
         ),
       ),
     );
@@ -88,13 +90,11 @@ class MyDeskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    final width = MediaQuery.of(context).size.width * .45;
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        width: width,
+        // width: width,
         padding: const EdgeInsets.all(20),
         
         decoration: BoxDecoration(
@@ -106,6 +106,8 @@ class MyDeskCard extends StatelessWidget {
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CircleAvatar(
               backgroundColor: iconColor.withOpacity(0.1),
@@ -115,12 +117,12 @@ class MyDeskCard extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 24),
             ),
             const SizedBox(height: 10),
             Text(
               description,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey[600], fontSize: 12),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 18),
               textAlign: TextAlign.center,
             ),
           ],

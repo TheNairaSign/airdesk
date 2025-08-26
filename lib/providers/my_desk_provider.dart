@@ -163,71 +163,73 @@ class MyDeskProvider extends ChangeNotifier {
   bool _accessLoading = false;
   bool get accessLoading => _accessLoading;
 
+  bool _deskAvailable = true;
+  bool get deskAvailable => _deskAvailable;
+
   Future<MyDeskData?> getCreatorDesks(BuildContext context, {bool load = true}) async {
-    try {
-      // Get stored access code or use input
-      final prefs = await SharedPreferences.getInstance();
-      final existing = prefs.getString('accessCode');
-      // final adminCode = existing ?? _accessDeskController.text;
-      String? adminCode = _accessDeskController.text;
+  try {
+    // Get stored access code or use input
+    final prefs = await SharedPreferences.getInstance();
+    final existing = prefs.getString('accessCode');
+    String? adminCode = _accessDeskController.text.isEmpty ? existing : _accessDeskController.text;
 
-      if (_accessDeskController.text.isEmpty) {
-        debugPrint('Access field is empty...');
-        adminCode = existing;
-      }
+    // Set loading state if needed
+    if (load) {
+      _setLoadingState(true);
+    }
 
-      // Set loading state if needed
-      if (load) {
-        _accessLoading = true;
-        notifyListeners();
-      }
+    // Make API request
+    final url = '${ApiConfig.baseUrl}/api/myDesk/admin/$adminCode';
+    final response = await http.get(Uri.parse(url));
+    final body = json.decode(response.body);
 
-      // Make API request
-      final url = '${ApiConfig.baseUrl}/api/myDesk/admin/$adminCode';
-      final response = await http.get(Uri.parse(url));
-      final body = json.decode(response.body);
-      
-      // Update desk data
+    debugPrint('Get creator desks response: $body with status code: ${response.statusCode}');
+
+    // Handle successful response
+    if (response.statusCode == 200) {
       _myDeskData = MyDeskData.fromJson(body['data']);
-      notifyListeners();
-
-      // Handle successful response
-      if (_myDeskData != null) {
-        // Store new access code if needed
-        if (load) {
-          if (existing != adminCode && adminCode != null) {
-            debugPrint('Storing new access code: $adminCode');
-            await storeAccessCode(adminCode);
-          }
-        }
-
-        // Navigate if loading
-        if (load) {
-          Navigator.of(context)
-            ..pop()
-            ..push(MaterialPageRoute(
-              builder: (context) => const MyDeskCreatorPage(),
-            ));
-        }
-      } else {
-        snackBar('Desk does not exist', context, isError: true);
-        _accessDeskController.clear();
+      // Store new access code if needed
+      if (load && existing != adminCode && adminCode != null) {
+        debugPrint('Storing new access code: $adminCode');
+        await storeAccessCode(adminCode);
       }
 
-      return _myDeskData;
-
-    } on http.ClientException catch (error) {
-      debugPrint('Error getting creator desks: $error');
-      return null;
-      
-    } finally {
+      // Navigate if loading
       if (load) {
-        _accessLoading = false;
-        _accessDeskController.clear();
-        notifyListeners();
+        Navigator.of(context)
+          ..pop()
+          ..push(MaterialPageRoute(
+            builder: (context) => const MyDeskCreatorPage(),
+          ));
       }
+    } else {
+      snackBar('Desk does not exist', context, isError: true);
+      _clearAccessDeskController();
+      return null;
+    }
+
+    return _myDeskData;
+
+  } catch (e) {
+    debugPrint('Error getting creator desks: $e');
+    snackBar('Error getting creator desks', context, isError: true);
+    _clearAccessDeskController();
+    return null;
+  } finally {
+    if (load) {
+      _setLoadingState(false);
     }
   }
+}
+
+void _setLoadingState(bool isLoading) {
+  _accessLoading = isLoading;
+  notifyListeners();
+}
+
+void _clearAccessDeskController() {
+  _accessDeskController.clear();
+}
 
   bool? _deskExists;
   bool? get deskExists => _deskExists;
@@ -268,10 +270,6 @@ class MyDeskProvider extends ChangeNotifier {
       return null;
     }
   }
-
-  // Future<void> accessMyDesk() async {
-
-  // }
 
 
   @override

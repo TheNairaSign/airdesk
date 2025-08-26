@@ -1,21 +1,28 @@
+import 'package:air_desk/utils/global_colours.dart';
 import 'package:flutter/material.dart';
 
 import '../../../components/copy.dart';
 
 class ContentContainer extends StatelessWidget {
   const ContentContainer({super.key, required this.content});
+
   final String? content;
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
+
+    
+    const borderColor = Color.fromRGBO(0, 108, 255, 0.1);
+
     return Container(
       padding: const EdgeInsets.all(10),
       margin: const EdgeInsets.symmetric(vertical: 20),
       // height: 250,
       // width: double.infinity,
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: GlobalColours(context).containerColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
-        border: Border.all(color: Theme.of(context).shadowColor, width: 1)
+        border: Border.all(color: isDarkMode ? Colors.transparent : borderColor, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

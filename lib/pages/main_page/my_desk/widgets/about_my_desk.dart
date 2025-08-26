@@ -9,7 +9,7 @@ class AboutMyDesk extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.symmetric(horizontal: 15),
+      // margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: GlobalColours(context).aboutContainer,
         borderRadius: BorderRadius.circular(16),

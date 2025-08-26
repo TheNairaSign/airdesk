@@ -1,5 +1,6 @@
 import 'package:air_desk/model/image_data.dart';
 import 'package:air_desk/pages/data_page/widgets/file_preview_container.dart';
+import 'package:air_desk/utils/global_colours.dart';
 import 'package:flutter/material.dart';
 
 import '../../../widgets/download_file.dart';
@@ -16,6 +17,10 @@ class FileDisplayContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // CustomFileType fileType = CustomFileType();
+    final isDarkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
+
+    
+    const borderColor = Color.fromRGBO(0, 108, 255, 0.1);
     // Widget content = fileType.isImageFile(imageUrl)? 
     return ListView.separated(
       separatorBuilder: (context, index) => const SizedBox(height: 10),
@@ -30,9 +35,9 @@ class FileDisplayContainer extends StatelessWidget {
           padding: const EdgeInsets.all(10),
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
+            color: GlobalColours(context).containerColor,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Theme.of(context).shadowColor, width: 1)
+            border: Border.all(color: isDarkMode ? Colors.transparent : borderColor, width: 1),
           ),
           child: Row(
             children: [

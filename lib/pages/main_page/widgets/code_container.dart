@@ -15,18 +15,20 @@ class CodeContainer extends StatelessWidget {
       children: [
         Container(
           height: 50,
-          width: 120,
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
           decoration: BoxDecoration(
             // color: Theme.of(context).cardColor,
             color: isDarkMode ? Colors.grey[900] : Colors.teal.withOpacity(.2),
 
             borderRadius: BorderRadius.circular(15)
           ),
-          child: Text(
-            code,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineSmall!.copyWith(color: const Color(0xff069383), fontWeight: FontWeight.bold),)
+          child: Center(
+            child: Text(
+              code,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall!.copyWith(color: const Color(0xff069383), fontWeight: FontWeight.bold),
+            ),
+          )
         ),
         const SizedBox(width: 15),
         Copy(textToCopy: code)

@@ -17,8 +17,7 @@ class ViewField extends StatefulWidget {
 class _ViewFieldState extends State<ViewField> {
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width * .65;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final width = MediaQuery.of(context).size.width * .20;
     final deskProvider = Provider.of<ViewProvider>(context);
     final sendToDesk = deskProvider.changeControllerState;
 
@@ -29,43 +28,41 @@ class _ViewFieldState extends State<ViewField> {
         
         final colors = sendToDesk ? deskExists ? color : Colors.red : const Color(0xff069383);
         final backgroundColor = sendToDesk ? deskExists ? color.withOpacity(.1) : Colors.red.withOpacity(.1) : Colors.grey.withOpacity(.1);
-        return Container(
-          height: 40,
-          // padding: const EdgeInsets.all(8),
-          margin: const EdgeInsets.fromLTRB(0, 20, 0, 20),
-          width: width,
-          decoration: BoxDecoration(
-            // color: const Color(0xffEAFFFD),
-            color: isDarkMode ? Theme.of(context).scaffoldBackgroundColor : backgroundColor,
-            borderRadius: BorderRadius.circular(20),
-            border: isDarkMode ? null : Border.all(color: colors, width: .5)
-
-          ),
-          child: Center(
-            child: TextFormField(
-              inputFormatters: [
-                LengthLimitingTextInputFormatter(9),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  viewProvider.deskNameListener(context);
-                });
-              },
-              controller: viewProvider.sendCodeController,
-              cursorColor: colors,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: colors, fontWeight: FontWeight.bold),
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.all(12),
-                hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
-                hintText: 'Enter code to view/edit or @userDesk',
-                enabled: true,
-                border: InputBorder.none
+        return Padding(
+          padding: EdgeInsets.only(right: width, bottom: 15, left: 5),
+          child: TextFormField(
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(9),
+            ],
+            onChanged: (value) {
+              setState(() {
+                viewProvider.deskNameListener(context);
+              });
+            },
+            controller: viewProvider.sendCodeController,
+            cursorColor: colors,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: colors, fontWeight: FontWeight.bold),
+            decoration: InputDecoration(
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: colors, width: .5),
+                borderRadius: BorderRadius.circular(20),
               ),
-              onFieldSubmitted: (value) {
-                viewProvider.updateControllerState(context);
-              },
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: colors, width: .5),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              fillColor: backgroundColor,
+              filled: true,
+              contentPadding: const EdgeInsets.all(12),
+              hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+              hintText: 'Enter code to view/edit or @userDesk',
+              enabled: true,
+              border: InputBorder.none
             ),
+            onFieldSubmitted: (value) {
+              viewProvider.updateControllerState(context);
+            },
           ),
         );
       }
