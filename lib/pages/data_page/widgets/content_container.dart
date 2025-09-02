@@ -21,7 +21,7 @@ class ContentContainer extends StatelessWidget {
       // width: double.infinity,
       decoration: BoxDecoration(
         color: GlobalColours(context).containerColor,
-        borderRadius: const BorderRadius.all(Radius.circular(10)),
+        borderRadius: const BorderRadius.all(Radius.circular(15)),
         border: Border.all(color: isDarkMode ? Colors.transparent : borderColor, width: 1),
       ),
       child: Column(
@@ -48,7 +48,6 @@ class ContentContainer extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(5),
                 height: 35,
-                width: 75,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15),
                   color: Theme.of(context).scaffoldBackgroundColor,

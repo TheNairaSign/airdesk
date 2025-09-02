@@ -83,6 +83,11 @@ class ShareProvider extends ChangeNotifier {
   bool _isEdit = false;
   bool get isEdit => _isEdit;
 
+  void resetEdit() {
+    _isEdit = false;
+    notifyListeners();
+  }
+
   bool isNetworkFile(String filePath) {
     return filePath.startsWith('http') || filePath.startsWith('https');
   }
@@ -368,6 +373,7 @@ class ShareProvider extends ChangeNotifier {
 
   void clearFiles(BuildContext context) {
     _file.clear();
+    _editFiles.clear();
     context.read<ReceiveFileProvider>().sharedFiles.clear();
     notifyListeners();
   }
@@ -425,6 +431,8 @@ class ShareProvider extends ChangeNotifier {
         final generatedCode = responseData["data"]["code"];
         final editCode = responseData["data"]["editCode"];
 
+        debugPrint("Share response: $responseData");
+
         addNewHistoryItem(context, generatedCode, responseData);
 
         // Navigate to the QRDisplayPage with the generated code
@@ -473,6 +481,8 @@ class ShareProvider extends ChangeNotifier {
     HistoryItem newItem = HistoryItem(
       code: generatedCode,
       id: responseData['data']['_id'],
+      editCode: responseData['data']['editCode'],
+      type: responseData['data']['deskType'],
       createdAt: responseData['data']['createdAt'],
     );
 

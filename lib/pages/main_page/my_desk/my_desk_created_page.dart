@@ -20,6 +20,8 @@ class MyDeskCreatedPage extends StatefulWidget {
 class _MyDeskCreatedPageState extends State<MyDeskCreatedPage> {
   final GlobalKey _boundaryKey = GlobalKey();
 
+  bool _isSavedTapped = false;
+
   @override
   Widget build(BuildContext context) {
     
@@ -182,24 +184,30 @@ class _MyDeskCreatedPageState extends State<MyDeskCreatedPage> {
                               const SizedBox(width: 10),
                               ElevatedButton(
                                 onPressed: () async {
+                                  setState(() {
+                                    _isSavedTapped = true;
+                                  });
+
                                   try {
-                                    await captureAndShare(_boundaryKey);
-                                    snackBar('Share card saved successfully', context);
+                                    final result = await captureAndDownloadWithResult(_boundaryKey);
+                                    if (result.isSuccess) {
+                                      snackBar('Image saved to: ${result.filePath}', context);
+                                    } else {
+                                      snackBar('Download Failed: ${result.error}', context);
+                                    }
                                   } catch (error) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Failed to save share card: ${error.toString()}'),
-                                        backgroundColor: Colors.red,
-                                        duration: const Duration(seconds: 3),
-                                      ),
-                                    );
+                                    snackBar('Error saving image: $error', context);
+                                  } finally {
+                                    setState(() {
+                                      _isSavedTapped = false;
+                                    });
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blue,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(10))
                                 ),
-                                child: Text("Save Share Card", style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                                child: _isSavedTapped ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white)) : Text("Save Share Card", style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
                               ),
                             ],
                           )

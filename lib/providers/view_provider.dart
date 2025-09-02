@@ -165,12 +165,19 @@ class ViewProvider extends ChangeNotifier {
   void deskNameListener(BuildContext context) {
     final myDeskProvider = Provider.of<MyDeskProvider>(context, listen: false);
 
+    final isEdit = !_sendCodeController.text.contains('@') && _sendCodeController.text.length == 9;
+
     final isMyDeskCode = _sendCodeController.text.startsWith('@') && _sendCodeController.text.substring(1).length == 8;
     if (isMyDeskCode) {
       debugPrint('Is my desk code: ${_sendCodeController.text}');
       _changeControllerState = true;
       FocusScope.of(context).unfocus();
       myDeskProvider.checkDesk(context, _sendCodeController.text);
+      notifyListeners();
+    } else if (isEdit) {
+      debugPrint('Is edit code: ${_sendCodeController.text}');
+      FocusScope.of(context).unfocus();
+      editDesk(context, _sendCodeController.text);
       notifyListeners();
     } else {
       _changeControllerState = false;
@@ -211,7 +218,14 @@ class ViewProvider extends ChangeNotifier {
       fetchData(context, _sendCodeController.text);
       notifyListeners();
     }
+  }
 
+  void resetStates(BuildContext context) {
+    final shareProvider = Provider.of<ShareProvider>(context, listen: false);
+    _changeControllerState = false;
+    _sendCodeController.clear();
+    shareProvider..resetEdit()..shareController.clear()..clearFiles(context);
+    notifyListeners();
   }
 
 }

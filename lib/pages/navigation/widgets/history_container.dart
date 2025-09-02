@@ -27,9 +27,7 @@ class _HistoryContainerState extends State<HistoryContainer> {
     return Consumer<HistoryProvider>(
       builder: (context, historyProvider, child) {
         if (historyProvider.historyItems.isEmpty) {
-          return Center(
-            child: Text('No history yet.', style: Theme.of(context).textTheme.headlineSmall,),
-          );
+          return Center(child: Text('No history yet.', style: Theme.of(context).textTheme.headlineSmall,));
         }
         return ListView.separated(
           itemCount: historyProvider.historyItems.length,
@@ -53,12 +51,17 @@ class HistoryItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final historyProvider = Provider.of<HistoryProvider>(context, listen: true);
 
     // Calculate the time left for this specific item.
     final expiryTime = DateTime.parse(item.createdAt).add(const Duration(hours: 24));
     final timeLeft = expiryTime.difference(DateTime.now());
+
+    debugPrint('Is live: ${item.type}');
+
+    final isLive = item.type == 'live';
+
+    final textColor = isLive ?  Colors.blue[700] : (codeColor);
 
     return GestureDetector(
       onTap: () {
@@ -66,9 +69,8 @@ class HistoryItemWidget extends StatelessWidget {
         viewProvider.fetchData(context, item.code);
       },
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
         width: double.infinity,
-        height: 70,
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           border: Border.all(color: Theme.of(context).shadowColor, width: 1),
@@ -76,13 +78,27 @@ class HistoryItemWidget extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              item.code,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: isDarkMode ? Colors.white : codeColor,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Text(
+                  item.code,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                if (item.editCode != null && item.editCode != '') ...[
+                  Icon(Icons.edit, size: 15, color: textColor),
+                  const SizedBox(width: 5),
+                  Text(
+                    item.editCode!,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: textColor, fontWeight: FontWeight.bold),
+                  ),
+                ]
+              ],
             ),
             const SizedBox(height: 7),
             if (timeLeft.isNegative)
@@ -93,7 +109,7 @@ class HistoryItemWidget extends StatelessWidget {
             else
             Text(
               historyProvider.formatDuration(timeLeft),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: codeColor),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
             ),
           ],
         ),

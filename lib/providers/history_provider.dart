@@ -17,6 +17,8 @@ class HistoryProvider extends ChangeNotifier {
     
     // Convert the list of HistoryItem objects to a list of JSON strings
     List<String> jsonStringList = items.map((item) => json.encode(item.toMap())).toList();
+
+    debugPrint("The History list: $jsonStringList");
     
     await prefs.setStringList('myHistory', jsonStringList);
   }
@@ -26,6 +28,8 @@ class HistoryProvider extends ChangeNotifier {
     debugPrint("GetHistoryItem function");
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? jsonStringList = prefs.getStringList('myHistory');
+
+    debugPrint("The History list: $jsonStringList");
     
     if (jsonStringList != null) {
       // Convert the list of JSON strings back into a list of HistoryItem objects

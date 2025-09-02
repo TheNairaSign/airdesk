@@ -14,19 +14,18 @@ class CodeContainer extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          height: 50,
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
           decoration: BoxDecoration(
             // color: Theme.of(context).cardColor,
             color: isDarkMode ? Colors.grey[900] : Colors.teal.withOpacity(.2),
 
-            borderRadius: BorderRadius.circular(15)
+            borderRadius: BorderRadius.circular(20)
           ),
           child: Center(
             child: Text(
               code,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall!.copyWith(color: const Color(0xff069383), fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: const Color(0xff069383), fontWeight: FontWeight.bold, fontSize: 20),
             ),
           )
         ),
