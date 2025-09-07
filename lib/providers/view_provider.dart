@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 import '../api/api_service.dart';
+import '../model/desk_data.dart';
 import '../pages/data_page/qr_data_page.dart';
 import '../utils/error_dialog.dart';
 import '../utils/loading_dialog.dart';
@@ -62,8 +63,10 @@ class ViewProvider extends ChangeNotifier {
         debugPrint("extracted Value: $extractedValue");
         debugPrint(data.toString());
 
-        final ApiService apiService = ApiService();
-        final airdeskData = await apiService.getdata(extractedValue, context);
+        final airdeskData = DeskData.fromJson(data['data']);
+
+        // final ApiService apiService = ApiService();
+        // final airdeskData = await apiService.getdata(extractedValue, context);
 
         Navigator.of(context).pop(); // Close the loading dialog before navigation
         debugPrint("Switching page");
@@ -73,6 +76,7 @@ class ViewProvider extends ChangeNotifier {
               data: jsonEncode(extractedValue),
               content: airdeskData.text,
               files: airdeskData.images,
+              createdAt: airdeskData.createdAt!,
             ),
           ),
         );
@@ -123,6 +127,7 @@ class ViewProvider extends ChangeNotifier {
               data: jsonEncode(extractedValue),
               content: airdeskData.text,
               files: airdeskData.images,
+              createdAt: airdeskData.createdAt!,
             ),
           ),
         );

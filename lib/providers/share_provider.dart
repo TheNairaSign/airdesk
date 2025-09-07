@@ -147,7 +147,7 @@ class ShareProvider extends ChangeNotifier {
             actions: [
               TextButton(
                 style: TextButton.styleFrom(
-                  backgroundColor: GlobalColours.errorColor.withOpacity(.1),
+                  backgroundColor: GlobalColours.errorColor.withValues(alpha: .1),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
                 ),
                 onPressed: () => Navigator.of(context).pop(),
@@ -244,7 +244,7 @@ class ShareProvider extends ChangeNotifier {
             actions: [
               TextButton(
                 style: TextButton.styleFrom(
-                  backgroundColor: GlobalColours.secondaryGreen.withOpacity(.1),
+                  backgroundColor: GlobalColours.secondaryGreen.withValues(alpha: .1),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
                 ),
                 onPressed: () => Navigator.of(context).pop(),
@@ -275,11 +275,18 @@ class ShareProvider extends ChangeNotifier {
     final deskName = viewProvider.sendCodeController.text.trim();
     final sendToDesk = viewProvider.changeControllerState;
     final isEdit = viewProvider.isEdit;
+    
+    final viewText = viewProvider.sendCodeController.text;
+    
+    final isView = _shareController.text.isEmpty && (viewText.isNotEmpty && !viewText.startsWith('@') && viewText.length == 6);
 
     if (sendToDesk) {
       submitToDesk(context, deskName);
     } else if (isEdit) {
       updateEdit(context);
+    } else if (isView) {
+      viewProvider.sendCodeController.clear();
+      viewProvider.fetchData(context, viewText);
     } else {
       postData(context, context.read<ReceiveFileProvider>().sharedFiles);
     }

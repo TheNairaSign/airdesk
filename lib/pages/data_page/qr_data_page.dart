@@ -3,21 +3,23 @@
 import 'package:air_desk/model/image_data.dart';
 import 'package:air_desk/pages/data_page/widgets/content_container.dart';
 import 'package:air_desk/pages/data_page/widgets/file_display_container.dart';
+import 'package:air_desk/pages/data_page/widgets/qr_and_countdown_container.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'package:air_desk/widgets/airdesk_and_logo.dart';
-import 'package:air_desk/pages/main_page/widgets/code_container.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class QrDataPage extends StatefulWidget {
   final String? data, content;
   final List<ImageData>? files;
+  final DateTime createdAt;
 
   const QrDataPage({
     super.key,
     this.data,
     this.content,
     this.files,
+    required this.createdAt,
   });
 
   @override
@@ -48,7 +50,12 @@ class _QrDataPageState extends State<QrDataPage> {
             child: Column(
               children: <Widget>[
                 const AirdeskAndLogo(top: 0.0),
-                CodeContainer(code: receivedCode),
+                // CodeContainer(code: receivedCode),
+                QrCountdownContainer(
+                  title: "Live desk",
+                  code: receivedCode,
+                  createdAt: widget.createdAt,
+                ),
                 const SizedBox(),
                 ContentContainer(content: widget.content),
                 const SizedBox(height: 10),
@@ -58,7 +65,7 @@ class _QrDataPageState extends State<QrDataPage> {
                       "Image Attachments",
                       style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.w600),
                     ),
-                    const Spacer(),
+                    // const Spacer(),
                     // DownloadMultiple(uris: widget.uris!)
                   ],
                 ),

@@ -15,6 +15,7 @@ class SendButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final deskProvider = Provider.of<ViewProvider>(context);
     final sendToDesk = deskProvider.changeControllerState;
+    final viewText = Provider.of<ViewProvider>(context).sendCodeController.text;
     
     const spinKit = SpinKitThreeBounce(
       color: Colors.white,
@@ -36,7 +37,12 @@ class SendButton extends StatelessWidget {
                 onTap: shareProvider.isLoading ? null : () async {
                   FocusScope.of(context).unfocus();
                   debugPrint("Sending Data");
-                  if(shareProvider.shareController.text.isNotEmpty || shareProvider.file.isNotEmpty || rp.sharedFiles.isNotEmpty || shareProvider.editFiles.isNotEmpty) {
+                  if(shareProvider.shareController.text.isNotEmpty
+                      || shareProvider.file.isNotEmpty
+                      || rp.sharedFiles.isNotEmpty
+                      || shareProvider.editFiles.isNotEmpty
+                      || (shareProvider.shareController.text.isEmpty && viewText.isNotEmpty && viewText.length == 6)
+                  ) {
                     shareProvider.submit(context);
                     // if(shareProvider.isEdit) {
                     //   await shareProvider.updateEdit(context);

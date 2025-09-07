@@ -34,8 +34,9 @@ class Copy extends StatelessWidget {
         children: [
           SvgPicture.asset(
             "assets/svg/files-alt.svg",
-              color: textColor ?? Theme.of(context).textTheme.bodyLarge!.color
+            color: textColor ?? Theme.of(context).textTheme.bodyLarge!.color
           ),
+          // const Icon(Icons.link, color: Colors.green),
           const SizedBox(width: 5),
           Text("Copy", style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor))
         ],

@@ -83,6 +83,7 @@ class SubmissionListTile extends StatelessWidget {
                       content: submission.text,
                       files: submission.images,
                       data: submission.code,
+                      createdAt: DateTime.parse(submission.createdAt!),
                     ),
                   ));
                 },
@@ -94,7 +95,7 @@ class SubmissionListTile extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(7),
                   ),
-                  backgroundColor: Colors.blue.withOpacity(0.1),
+                  backgroundColor: Colors.blue.withValues(alpha: 0.1),
                 ),
               ),
             ),
