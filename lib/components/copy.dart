@@ -23,22 +23,22 @@ class Copy extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(10))
           ),
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(10),
+          // margin: const EdgeInsets.all(10),
           dismissDirection: DismissDirection.up,
           content: Text('Copied to clipboard', style: GoogleFonts.poppins(color: Colors.white))),
         );
         debugPrint("Item copied");
         debugPrint(textToCopy);
       },
-      child: Row(
+      child: const Row(
         children: [
-          SvgPicture.asset(
-            "assets/svg/files-alt.svg",
-            color: textColor ?? Theme.of(context).textTheme.bodyLarge!.color
-          ),
-          // const Icon(Icons.link, color: Colors.green),
-          const SizedBox(width: 5),
-          Text("Copy", style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor))
+          // SvgPicture.asset(
+          //   "assets/svg/files-alt.svg",
+          //   color: textColor ?? Theme.of(context).textTheme.bodyLarge!.color
+          // ),
+          const Icon(Icons.link, color: Colors.green),
+          // const SizedBox(width: 5),
+          // Text("Copy", style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor))
         ],
       ),
     );

@@ -167,58 +167,58 @@ class MyDeskProvider extends ChangeNotifier {
   bool get deskAvailable => _deskAvailable;
 
   Future<MyDeskData?> getCreatorDesks(BuildContext context, {bool load = true}) async {
-  try {
-    // Get stored access code or use input
-    final prefs = await SharedPreferences.getInstance();
-    final existing = prefs.getString('accessCode');
-    String? adminCode = _accessDeskController.text.isEmpty ? existing : _accessDeskController.text;
+    try {
+      // Get stored access code or use input
+      final prefs = await SharedPreferences.getInstance();
+      final existing = prefs.getString('accessCode');
+      String? adminCode = _accessDeskController.text.isEmpty ? existing : _accessDeskController.text;
 
-    // Set loading state if needed
-    if (load) {
-      _setLoadingState(true);
-    }
-
-    // Make API request
-    final url = '${ApiConfig.baseUrl}/api/myDesk/admin/$adminCode';
-    final response = await http.get(Uri.parse(url));
-    final body = json.decode(response.body);
-
-    debugPrint('Get creator desks response: $body with status code: ${response.statusCode}');
-
-    // Handle successful response
-    if (response.statusCode == 200) {
-      _myDeskData = MyDeskData.fromJson(body['data']);
-      // Store new access code if needed
-      if (load && existing != adminCode && adminCode != null) {
-        debugPrint('Storing new access code: $adminCode');
-        await storeAccessCode(adminCode);
-      }
-
-      // Navigate if loading
+      // Set loading state if needed
       if (load) {
-        Navigator.of(context)
-          ..pop()
-          ..push(MaterialPageRoute(
-            builder: (context) => const MyDeskCreatorPage(),
-          ));
+        _setLoadingState(true);
       }
-    } else {
-      snackBar('Desk does not exist', context, isError: true);
+
+      // Make API request
+      final url = '${ApiConfig.baseUrl}/api/myDesk/admin/$adminCode';
+      final response = await http.get(Uri.parse(url));
+      final body = json.decode(response.body);
+
+      debugPrint('Get creator desks response: $body with status code: ${response.statusCode}');
+
+      // Handle successful response
+      if (response.statusCode == 200) {
+        _myDeskData = MyDeskData.fromJson(body['data']);
+        // Store new access code if needed
+        if (load && existing != adminCode && adminCode != null) {
+          debugPrint('Storing new access code: $adminCode');
+          await storeAccessCode(adminCode);
+        }
+
+        // Navigate if loading
+        if (load) {
+          Navigator.of(context)
+            ..pop()
+            ..push(MaterialPageRoute(
+              builder: (context) => const MyDeskCreatorPage(),
+            ));
+        }
+      } else {
+        snackBar('Desk does not exist', context, isError: true);
+        _clearAccessDeskController();
+        return null;
+      }
+
+      return _myDeskData;
+
+    } catch (e) {
+      debugPrint('Error getting creator desks: $e');
+      snackBar('Error getting creator desks', context, isError: true);
       _clearAccessDeskController();
       return null;
-    }
-
-    return _myDeskData;
-
-  } catch (e) {
-    debugPrint('Error getting creator desks: $e');
-    snackBar('Error getting creator desks', context, isError: true);
-    _clearAccessDeskController();
-    return null;
-  } finally {
-    if (load) {
-      _setLoadingState(false);
-    }
+    } finally {
+      if (load) {
+        _setLoadingState(false);
+     }
   }
 }
 

@@ -1,8 +1,9 @@
+import 'package:air_desk/utils/global_colours.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/history_provider.dart';
-import '../../widgets/airdesk_and_logo.dart';
+// import '../../widgets/airdesk_and_logo.dart';
 import 'widgets/history_container.dart';
 
 class HistoryPage extends StatefulWidget {
@@ -25,32 +26,34 @@ class _HistoryPageState extends State<HistoryPage> {
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Consumer<HistoryProvider>(
-        builder: (context, historyProvider, child) {
-          return Padding(
-            padding: const EdgeInsets.only(left: 15, right: 15),
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                const AirdeskAndLogo(),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Text("Share History", style: Theme.of((context)).textTheme.headlineSmall),
-                    const SizedBox(width: 10),
-                    Text('(Disappears in 24hrs)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey)),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                historyProvider.historyItems.isNotEmpty 
-                ? const HistoryContainer()
-                : Center(child: Text("No share history", style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 25, color: Theme.of(context).textTheme.bodyLarge?.color))),
-              ],
-            ),
-          );
-        }
-      ),
+    return Consumer<HistoryProvider>(
+      builder: (context, historyProvider, child) {
+        return RefreshIndicator(
+          color: GlobalColours(context).buttonColor,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          onRefresh: () async {
+            historyProvider..loadHistory()..getHistoryItems();
+          },
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              // const AirdeskAndLogo(),
+              // const SizedBox(height: 10),
+              // Row(
+              //   children: [
+              //     Text("Share History", style: Theme.of((context)).textTheme.headlineSmall),
+              //     const SizedBox(width: 10),
+              //     Text('(Disappears in 24hrs)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey)),
+              //   ],
+              // ),
+              // const SizedBox(height: 20),
+              historyProvider.historyItems.isNotEmpty
+              ? const HistoryContainer()
+              : Center(child: Text("No share history", style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 25, color: Theme.of(context).textTheme.bodyLarge?.color))),
+            ],
+          ),
+        );
+      }
     );
   }
 }

@@ -20,14 +20,36 @@ class MyDesk {
   final String? code;
   final String? adminCode;
   final String? createdAt;
+  final bool? isPremium;
+  final SubmissionLimit? submissionLimit;
 
-  MyDesk({this.code, this.adminCode, this.createdAt});
+  MyDesk({this.code, this.adminCode, this.createdAt, this.isPremium, this.submissionLimit});
 
   factory MyDesk.fromJson(Map<String, dynamic> json) {
     return MyDesk(
       code: json['code'] as String?,
       adminCode: json['adminCode'] as String?,
       createdAt: json['createdAt'] as String?,
+      isPremium: json['isPremium'] as bool?,
+      submissionLimit: json['submissionLimit'] != null ? SubmissionLimit.fromJson(json['submissionLimit']) : null,
     );
   }
+}
+
+
+class SubmissionLimit {
+  final int? monthly;
+  final int? used;
+  final int? remaining;
+  final int? hiddenCount;
+
+  SubmissionLimit({this.monthly, this.used, this.remaining, this.hiddenCount});
+
+  factory SubmissionLimit.fromJson(Map<String, dynamic> json) {
+    return SubmissionLimit(
+      monthly: json['monthly'] as int?,
+      used: json['used'] as int?,
+      remaining: json['remaining'] as int?,
+    );
+    }
 }

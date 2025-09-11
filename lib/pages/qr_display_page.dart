@@ -48,7 +48,7 @@ class QRDisplayPage extends StatelessWidget {
               const AirdeskAndLogo(),
               const SizedBox(height: 10),
               Center(
-                child: CodeContainer(code: code,)
+                child: CodeContainer(code: code)
                 ),
               const SizedBox(height: 30),
               Center(

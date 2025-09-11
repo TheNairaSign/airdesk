@@ -52,7 +52,8 @@ class EditCodeContainer extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
-                      letterSpacing: 1.2,
+                      // letterSpacing: 1.2,
+                      fontFamily: "monospace",
                       color: GlobalColours(context).codeTextColor,
                     ),
                   ),

@@ -27,7 +27,7 @@ class _HistoryContainerState extends State<HistoryContainer> {
     return Consumer<HistoryProvider>(
       builder: (context, historyProvider, child) {
         if (historyProvider.historyItems.isEmpty) {
-          return Center(child: Text('No history yet.', style: Theme.of(context).textTheme.headlineSmall,));
+          return Center(child: Text('No history yet.', style: Theme.of(context).textTheme.headlineSmall));
         }
         return ListView.separated(
           itemCount: historyProvider.historyItems.length,

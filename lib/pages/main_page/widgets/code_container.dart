@@ -30,7 +30,13 @@ class CodeContainer extends StatelessWidget {
           )
         ),
         const SizedBox(width: 15),
-        Copy(textToCopy: code)
+        Row(
+          children: [
+            Copy(textToCopy: code),
+            const SizedBox(width: 3),
+            const Text('Copy')
+          ],
+        )
       ],
     );
   }
