@@ -1,8 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Copy extends StatelessWidget {
@@ -36,7 +36,7 @@ class Copy extends StatelessWidget {
           //   "assets/svg/files-alt.svg",
           //   color: textColor ?? Theme.of(context).textTheme.bodyLarge!.color
           // ),
-          const Icon(Icons.link, color: Colors.green),
+          Icon(EvaIcons.copyOutline, color: Colors.green),
           // const SizedBox(width: 5),
           // Text("Copy", style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor))
         ],

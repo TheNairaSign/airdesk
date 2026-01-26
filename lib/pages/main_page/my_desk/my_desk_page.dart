@@ -26,10 +26,16 @@ class _MyDeskPageState extends State<MyDeskPage> {
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         centerTitle: true,
-        title: Text('MyDesk', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 32, fontWeight: FontWeight.bold)), 
+        title: Text(
+          'MyDesk',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+        ), 
         forceMaterialTransparency: true,
       ),
-    body: PopScope(
+      body: PopScope(
         canPop: true,
         onPopInvokedWithResult: (didPop, result) {
           if (didPop) {
@@ -38,34 +44,43 @@ class _MyDeskPageState extends State<MyDeskPage> {
             });
           }
         },
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: ListView(
-            children: [
-              Text(
-                'Your personal space for receiving and\nmanaging content',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 18, color: GlobalColours(context).textColorForContainer),
-              ),
-              const SizedBox(height: 20),
-              MyDeskCard(
-                icon: Icons.add,
-                title: 'Create MyDesk',
-                description: 'Get your personal desk with a custom code for receiving content',
-                iconColor: Colors.green,
-                onPressed: () => showCreationDialog(context),
-              ),
-              const SizedBox(height: 15),
-              MyDeskCard(
-                icon: Icons.lock_outline,
-                title: 'Access MyDesk',
-                description: 'View and download submissions sent to your MyDesk',
-                iconColor: Colors.blue,
-                onPressed: () => showAccessDialog(context),
-              ),
-              const SizedBox(height: 15),
-              const AboutMyDesk()
-            ],
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Your personal space for receiving and\nmanaging content',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                MyDeskCard(
+                  icon: Icons.add_circle_outline_rounded,
+                  title: 'Create MyDesk',
+                  description: 'Get your personal desk with a custom code for receiving content',
+                  iconColor: const Color(0xFF006CFF),
+                  onPressed: () => showCreationDialog(context),
+                ),
+                const SizedBox(height: 16),
+                MyDeskCard(
+                  icon: Icons.lock_open_rounded,
+                  title: 'Access MyDesk',
+                  description: 'View and download submissions sent to your MyDesk',
+                  iconColor: const Color(0xFF069383),
+                  onPressed: () => showAccessDialog(context),
+                ),
+                const SizedBox(height: 32),
+                const AboutMyDesk(),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
@@ -90,42 +105,55 @@ class MyDeskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        // width: width,
-        padding: const EdgeInsets.all(20),
-        
-        decoration: BoxDecoration(
-          color: GlobalColours(context).containerColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            GlobalColours(context).containerShadow
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: GlobalColours(context).containerColor,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: isDarkMode ? Colors.black.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          )
         ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              backgroundColor: iconColor.withOpacity(0.1),
-              child: Icon(icon, color: iconColor),
-            ),
-            const SizedBox(height: 15),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 24),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              description,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: 18),
-              textAlign: TextAlign.center,
-            ),
-          ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(24),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 32),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                description,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

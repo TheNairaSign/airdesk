@@ -5,7 +5,6 @@ import 'package:air_desk/pages/main_page/widgets/status_switch.dart';
 import 'package:air_desk/pages/main_page/widgets/view_field.dart';
 import 'package:air_desk/providers/share_provider.dart';
 import 'package:air_desk/utils/global_colours.dart';
-// import 'package:air_desk/pages/main_page/widgets/status_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +21,6 @@ class ViewContainer extends StatefulWidget {
 class _ViewContainerState extends State<ViewContainer> {
   final String text = "Input Content to share or [desk code] to view";
 
-  // ✅ Create the FocusNode here to persist across rebuilds
   final FocusNode _focusNode = FocusNode();
 
   @override
@@ -33,7 +31,7 @@ class _ViewContainerState extends State<ViewContainer> {
 
   @override
   void dispose() {
-    _focusNode.dispose(); // ✅ Always dispose your FocusNode
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -55,32 +53,32 @@ class _ViewContainerState extends State<ViewContainer> {
       behavior: HitTestBehavior.translucent,
       child: Consumer<ViewProvider>(
         builder: (context, viewProvider, child) {
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            height: 400,
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: isDarkMode ? Colors.black.withValues(alpha: 0.3) : const Color(0xFF006CFF).withValues(alpha: 0.08),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                  spreadRadius: 0,
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                height: 400,
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDarkMode ? Colors.black.withValues(alpha: 0.3) : const Color(0xFF006CFF).withValues(alpha: 0.08),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                      spreadRadius: 0,
+                    ),
+                  ],
+                  border: Border.all(
+                    color: isDarkMode ? Colors.white.withValues(alpha: 0.05) : const Color(0xFF006CFF).withValues(alpha: 0.08),
+                    width: 1.5,
+                  ),
                 ),
-              ],
-              border: Border.all(
-                color: isDarkMode ? Colors.white.withValues(alpha: 0.05) : const Color(0xFF006CFF).withValues(alpha: 0.08),
-                width: 1.5,
-              ),
-            ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -105,8 +103,8 @@ class _ViewContainerState extends State<ViewContainer> {
                             ),
                             child: SvgPicture.asset(
                               "assets/svg/qr-scan.svg",
-                              width: 20,
-                              height: 20,
+                              width: 25,
+                              height: 25,
                               colorFilter: ColorFilter.mode(
                                 isDarkMode ? Colors.white70 : const Color(0xFF006CFF),
                                 BlendMode.srcIn,
@@ -120,7 +118,7 @@ class _ViewContainerState extends State<ViewContainer> {
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
-                          color: isDarkMode ? Colors.black.withValues(alpha: 0.2) : const Color(0xFFF8FAFC),
+                          color: isDarkMode ? Colors.black.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: ClipRRect(
@@ -156,7 +154,7 @@ class _ViewContainerState extends State<ViewContainer> {
                                   ? "Share contents to ${viewProvider.sendCodeController.text}" 
                                   : "Type or paste content to share...",
                                 hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
+                                  color: isDarkMode ? Colors.grey[600] : Colors.grey[700],
                                   fontSize: 16,
                                   fontWeight: FontWeight.w400,
                                 ),
@@ -173,13 +171,9 @@ class _ViewContainerState extends State<ViewContainer> {
                     const ViewField(),
                   ],
                 ),
-                const Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: SendButton(),
-                ),
-              ],
-            ),
+              ),
+              const SendButton(),
+            ],
           );
         }
       ),

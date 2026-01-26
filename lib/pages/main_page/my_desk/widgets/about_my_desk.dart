@@ -97,6 +97,7 @@ class AboutMyDesk extends StatelessWidget {
                   text: " $text",
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.normal,
+                    fontSize: 11,
                   ),
                 )
               ],

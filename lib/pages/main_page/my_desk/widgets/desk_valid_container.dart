@@ -11,24 +11,45 @@ class DeskValidContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<MyDeskProvider>(
       builder: (context, myDeskProvider, child) {
-        final color = myDeskProvider.deskExists == true ? primaryBlue : Colors.red;
+        final exists = myDeskProvider.deskExists == true;
+        final color = exists ? primaryBlue : Colors.red;
         final width = MediaQuery.of(context).size.width;
 
-        return Container(
-          height: 30,
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
           constraints: BoxConstraints(maxWidth: width * 0.7),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: color.withOpacity(.1),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: color, width: .7)
+            color: color.withValues(alpha: .1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color.withValues(alpha: .5), width: 1)
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.work_outline_sharp, size: 12, color: color,),
-              const SizedBox(width: 5),
-              Text(myDeskProvider.deskExists == true ? 'Sending to myDesk: $deskName' : 'Desk: $deskName not found', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: color),)
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                child: Icon(
+                  exists ? Icons.check_circle_outline : Icons.error_outline,
+                  key: ValueKey(exists),
+                  size: 16,
+                  color: color,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  exists ? 'Sending to: $deskName' : 'Desk "$deskName" not found',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              )
             ],
           ),
         );

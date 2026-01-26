@@ -5,18 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 
-void showAccessDialog(BuildContext context) {
+void showAccessDialog(BuildContext context, {String? code}) {
 
   showDialog(
     context: context,
     builder: (context) {
-      return const AccessDialog();
+      return AccessDialog(code: code);
     },
   );
 }
 
 class AccessDialog extends StatefulWidget {
-  const AccessDialog({super.key});
+  const AccessDialog({super.key, this.code});
+  final String? code;
 
   @override
   State<AccessDialog> createState() => _AccessDialogState();
@@ -25,6 +26,16 @@ class AccessDialog extends StatefulWidget {
 class _AccessDialogState extends State<AccessDialog> {
 
   final _globalKey = GlobalKey<FormState>();
+
+  @override
+  initState() {
+    super.initState();
+    debugPrint('AccessDialog initState');
+    if (widget.code != null) {
+      debugPrint(widget.code);
+      context.read<MyDeskProvider>().accessDeskController.text = widget.code!;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
