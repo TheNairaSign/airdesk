@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../constants.dart';
 import '../../services/url_launcher_service.dart';
-import '../../themes/light_theme.dart';
 import '../../utils/global_colours.dart';
 import '../main_page/my_desk/my_desk_creator_page.dart';
 import '../main_page/my_desk/my_desk_page.dart';
@@ -93,7 +92,7 @@ AppBar mainPageAppBar(BuildContext context) {
         padding: const EdgeInsets.all(10),
         child: CircleAvatar(
           radius: 30,
-          backgroundColor: Colors.grey[600],
+          backgroundColor: Colors.grey[200],
           // child: Image.network(placeholderProfilePic),
         ),
       ),

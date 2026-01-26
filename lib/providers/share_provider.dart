@@ -1,14 +1,10 @@
-// ...existing imports...
-
-// Represents an editable file with both url and original name
-
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:convert';
+
+import 'package:air_desk/model/image_data.dart';
+import 'package:air_desk/services/desk_cache_service.dart';
 import 'dart:io';
 
 import 'package:air_desk/constants.dart';
-import 'package:air_desk/model/image_data.dart';
 import 'package:air_desk/providers/my_desk_provider.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
@@ -19,9 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sharing_intent/model/sharing_file.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-
-// import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-
 import '../model/history_model.dart';
 import '../pages/qr_display_page.dart';
 import 'history_provider.dart';
@@ -322,9 +315,9 @@ class ShareProvider extends ChangeNotifier {
     final controller = viewProvider.sendCodeController;
 
 
-    const config = 'https://airdesk-be.onrender.com/api/';
+    final originalDeskName = deskName;
     deskName = deskName.replaceAll('@', '');
-    final url = Uri.parse('$config/myDesk/submit/$deskName');
+    final url = Uri.parse('https://airdeskserver-production.up.railway.app/api/mydesk/submit/$deskName');
 
     var request = http.MultipartRequest('POST', url);
     request.fields['content'] = _shareController.text;
@@ -341,7 +334,14 @@ class ShareProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
 
-      if (response.statusCode == 200) {
+      debugPrint("Response status code: ${request.fields}");
+      debugPrint("Request Response: ${response.request}"); 
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Cache the desk code on success
+        await DeskCacheService().cacheDeskCode(originalDeskName);
+        debugPrint('Successfully cached desk code: $originalDeskName');
+
         showSuccessDialog(
           context, 
           deskName: deskName, 
@@ -355,6 +355,12 @@ class ShareProvider extends ChangeNotifier {
             clearFiles(context);
           }
         );
+      } else {
+        _isLoading = false;
+        notifyListeners();
+        debugPrint('***************');
+        debugPrint('Error: ${response.statusCode}, Body: ${response.reasonPhrase}');
+        debugPrint('***************');
       }
     } catch (error) {
       debugPrint('Error Sending edited data: $error');
@@ -420,15 +426,17 @@ class ShareProvider extends ChangeNotifier {
     }
 
     try {
+      debugPrint('***************');
       debugPrint("Request fields: ${request.fields}");
       debugPrint("Total files to upload: ${request.files.length}");
+      debugPrint('***************');
 
       // Send the request and get the response
       var response = await request.send();
       _isLoading = false;
       notifyListeners();
       debugPrint("Response status code: ${response.statusCode}");
-      debugPrint("Request Response: ${response.request}");
+      debugPrint("Request Response: ${response.reasonPhrase}");
 
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
@@ -463,8 +471,9 @@ class ShareProvider extends ChangeNotifier {
       } else {
         _isLoading = false;
         notifyListeners();
-
+        debugPrint('++++++++++++');
         debugPrint('Error: ${response.statusCode}, Body: ${response.reasonPhrase}');
+        debugPrint('++++++++++++');
       }
     } catch (e) {
       _isLoading = false;

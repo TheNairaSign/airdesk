@@ -5,12 +5,13 @@ class About extends StatelessWidget {
   const About({super.key});
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
       padding: const EdgeInsets.all(20),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: GlobalColours(context).aboutContainer,
+        color: isDark ? Colors.grey[900] : Colors.white,
         borderRadius: const BorderRadius.all(Radius.circular(20)),
       ),
       child: Column(
