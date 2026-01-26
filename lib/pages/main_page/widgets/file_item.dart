@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:air_desk/widgets/file_preview.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class FileItem extends StatelessWidget {
   const FileItem({super.key, required this.filePath, required this.onRemove, this.fileName});
@@ -15,7 +14,7 @@ class FileItem extends StatelessWidget {
     return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      FilePreview(file: File(filePath)),
+      FilePreview(file: File(filePath), size: 60),
       const SizedBox(width: 15),
       Expanded(
         child: Text(
@@ -23,23 +22,17 @@ class FileItem extends StatelessWidget {
           softWrap: true,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.left,
-          maxLines: 4,
-          style: Theme.of(context).textTheme.bodyLarge,
+          maxLines: 3,
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),
       GestureDetector(
         onTap: onRemove,
-        child: Row(
+        child: const Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.close, color: Colors.red, size: 19),
-            Text(
-              "Remove",
-              style: GoogleFonts.poppins(
-                color: Colors.red,
-                decoration: TextDecoration.underline,
-              ),
-            ),
+            SizedBox(width: 15),
+            Icon(Icons.close, color: Colors.red, size: 19),
           ],
         ),
       ),

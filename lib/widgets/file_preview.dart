@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class FilePreview extends StatelessWidget {
-  const FilePreview({super.key, required this.file});
+  const FilePreview({super.key, required this.file, this.size = 80});
   final File file;
+  final double? size;
 
   static const _spinKit = SpinKitRing(color: Color(0xff069383), size: 50.0, lineWidth: 3.0);
 
@@ -20,8 +21,8 @@ class FilePreview extends StatelessWidget {
 
     if (['jpg', 'jpeg', 'png'].contains(fileExtension)) {
       return Container(
-        height: 96,
-        width: 96,
+        height: size,
+        width: size,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
         clipBehavior: Clip.hardEdge,
         child: imageUrl != null

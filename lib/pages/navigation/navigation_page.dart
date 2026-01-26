@@ -81,17 +81,20 @@ AppBar mainPageAppBar(BuildContext context) {
     leading: GestureDetector(
       onTap: () async {
         final accessCode = await _getAccessCode();
-        if (accessCode != null) {
+        if (accessCode != null && context.mounted) {
           Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MyDeskCreatorPage()));
         } else {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyDeskPage()));
+          if (context.mounted) {
+            Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyDeskPage()));
+          }
         }
       },
       child: Container(
         padding: const EdgeInsets.all(10),
         child: CircleAvatar(
           radius: 30,
-          child: Image.network(placeholderProfilePic),
+          backgroundColor: Colors.grey[600],
+          // child: Image.network(placeholderProfilePic),
         ),
       ),
     ),

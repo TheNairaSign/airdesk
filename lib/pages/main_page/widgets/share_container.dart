@@ -1,9 +1,8 @@
 import 'dart:io';
 
-import 'package:air_desk/components/upload__file.dart';
+import 'package:air_desk/components/upload_file.dart';
 import 'package:air_desk/providers/share_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../../widgets/file_preview.dart';
@@ -48,7 +47,7 @@ class _ShareContainerState extends State<ShareContainer> {
                         const SizedBox(width: 3),
                         Text(
                           "To Share",
-                          style: GoogleFonts.poppins(
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.grey[700],
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
@@ -62,7 +61,7 @@ class _ShareContainerState extends State<ShareContainer> {
                         enableIMEPersonalizedLearning: true,
                         maxLines: null,
                         keyboardType: TextInputType.multiline,
-                        style: GoogleFonts.poppins(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontSize: 18,
                           fontWeight: FontWeight.normal,
                           color: Colors.black,
@@ -71,8 +70,8 @@ class _ShareContainerState extends State<ShareContainer> {
                           contentPadding: const EdgeInsets.all(5),
                           hintTextDirection: TextDirection.ltr,
                           hintText: "Paste Link or text content here",
-                          hintStyle: GoogleFonts.poppins(
-                            color: Colors.grey[900]!.withOpacity(0.5),
+                          hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey[900]!.withValues(alpha: .5),
                             fontWeight: FontWeight.normal,
                             fontSize: 18,
                           ),
@@ -112,7 +111,7 @@ class _ShareContainerState extends State<ShareContainer> {
                                       overflow: TextOverflow.ellipsis,
                                       textAlign: TextAlign.left,
                                       maxLines: 4,
-                                      style: GoogleFonts.poppins(
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                         color: Colors.black, fontSize: 15),
                                     ),
                                   ),
@@ -132,7 +131,7 @@ class _ShareContainerState extends State<ShareContainer> {
                                           ),
                                         Text(
                                           "Remove",
-                                          style: GoogleFonts.poppins(
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                             color: Colors.red,
                                             decoration: TextDecoration.underline,
                                           ),

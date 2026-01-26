@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 
 class AirdeskAndLogo extends StatelessWidget {
-  const AirdeskAndLogo({super.key, this.top = 30.0});
+  const AirdeskAndLogo({super.key, this.top = 20.0});
   final img = "assets/air-desk-logo.png";
   final size = 45.0;
   final double top;
