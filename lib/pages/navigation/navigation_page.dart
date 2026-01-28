@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../constants.dart';
-import '../../services/url_launcher_service.dart';
 import '../../utils/global_colours.dart';
 import '../main_page/my_desk/my_desk_creator_page.dart';
 import '../main_page/my_desk/my_desk_page.dart';
@@ -41,7 +40,7 @@ class _NavigationPageState extends State<NavigationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _currentIndex == 0 ? mainPageAppBar(context) : historyAppBar(context),
+      appBar: mainPageAppBar(context),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15),
         child: pages[_currentIndex],
@@ -75,9 +74,11 @@ Future<String?> _getAccessCode() async {
 
 
 AppBar mainPageAppBar(BuildContext context) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
   return AppBar(
     forceMaterialTransparency: true,
-    leading: GestureDetector(
+    actions: [
+      GestureDetector(
       onTap: () async {
         final accessCode = await _getAccessCode();
         if (accessCode != null && context.mounted) {
@@ -91,28 +92,43 @@ AppBar mainPageAppBar(BuildContext context) {
       child: Container(
         padding: const EdgeInsets.all(10),
         child: CircleAvatar(
-          radius: 30,
+          radius: 20,
           backgroundColor: Colors.grey[200],
-          // child: Image.network(placeholderProfilePic),
+          backgroundImage: const AssetImage('assets/avatar.jpg')
         ),
       ),
     ),
-    actions: [
-      Text("How it works", style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16)),
-      const SizedBox(width: 10),
-      GestureDetector(
-        onTap: () {
-          // Navigator.of(context).push(MaterialPageRoute(builder: (context) => const WebViewPage()));
-          // openWebUrl();
-          UrlLauncherService.launchInAppBrowser();
-        },
-        child: SizedBox(
-            height: 40,
-            width: 40,
-            child: Image.asset("assets/x.png")),
-      ),
-      const SizedBox(width: 10),
     ],
+    title: Row(
+      children: [
+        Container(
+          margin: const EdgeInsets.fromLTRB(10, 15, 0, 15),
+          child: Image.asset("assets/air-desk-logo.png", height: 30, width: 30)
+        ),
+        const SizedBox(width: 10),
+        Text(
+          "airdesk",
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black),
+          textScaler: const TextScaler.linear( 1.2),
+        ),
+      ],
+    ),
+    // actions: [
+    //   Text("How it works", style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16)),
+    //   const SizedBox(width: 10),
+    //   GestureDetector(
+    //     onTap: () {
+    //       // Navigator.of(context).push(MaterialPageRoute(builder: (context) => const WebViewPage()));
+    //       // openWebUrl();
+    //       UrlLauncherService.launchInAppBrowser();
+    //     },
+    //     child: SizedBox(
+    //         height: 40,
+    //         width: 40,
+    //         child: Image.asset("assets/x.png")),
+    //   ),
+    //   const SizedBox(width: 10),
+    // ],
   );
 }
 

@@ -59,7 +59,7 @@ class _ViewContainerState extends State<ViewContainer> {
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
-                height: 400,
+                height: 450,
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -116,52 +116,46 @@ class _ViewContainerState extends State<ViewContainer> {
                     ),
                     const SizedBox(height: 20),
                     Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isDarkMode ? Colors.black.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Scrollbar(
-                            controller: scrollController,
-                            interactive: true,
-                            radius: const Radius.circular(10),
-                            thumbVisibility: true,
-                            child: TextFormField(
-                              focusNode: _focusNode,
-                              scrollController: scrollController,
-                              controller: controller,
-                              textDirection: TextDirection.ltr,
-                              keyboardType: TextInputType.multiline,
-                              scrollPadding: const EdgeInsets.only(bottom: 100),
-                              scrollPhysics: const BouncingScrollPhysics(),
-                              enabled: true,
-                              expands: true,
-                              cursorColor: const Color(0xFF006CFF),
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: GlobalColours(context).textColorForContainer,
-                                height: 1.5,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Scrollbar(
+                          controller: scrollController,
+                          interactive: true,
+                          radius: const Radius.circular(10),
+                          thumbVisibility: true,
+                          child: TextFormField(
+                            focusNode: _focusNode,
+                            scrollController: scrollController,
+                            controller: controller,
+                            textDirection: TextDirection.ltr,
+                            keyboardType: TextInputType.multiline,
+                            scrollPadding: const EdgeInsets.only(bottom: 100),
+                            scrollPhysics: const BouncingScrollPhysics(),
+                            enabled: true,
+                            expands: true,
+                            cursorColor: const Color(0xFF006CFF),
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: GlobalColours(context).textColorForContainer,
+                              height: 1.5,
+                              fontSize: 16,
+                            ),
+                            maxLines: null,
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.all(10),
+                              filled: true,
+                              isDense: true,
+                              fillColor: Colors.transparent,
+                              hintText: viewProvider.changeControllerState 
+                                ? "Share contents to ${viewProvider.sendCodeController.text}" 
+                                : "Type or paste content to share...",
+                              hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                color: isDarkMode ? Colors.grey[600] : Colors.grey[700],
                                 fontSize: 16,
+                                fontWeight: FontWeight.w400,
                               ),
-                              maxLines: null,
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.all(16),
-                                filled: true,
-                                isDense: true,
-                                fillColor: Colors.transparent,
-                                hintText: viewProvider.changeControllerState 
-                                  ? "Share contents to ${viewProvider.sendCodeController.text}" 
-                                  : "Type or paste content to share...",
-                                hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  color: isDarkMode ? Colors.grey[600] : Colors.grey[700],
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
                             ),
                           ),
                         ),

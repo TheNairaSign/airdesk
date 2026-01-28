@@ -8,7 +8,6 @@ import 'package:air_desk/pages/main_page/widgets/view_container.dart';
 import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
-import 'package:air_desk/widgets/airdesk_and_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,13 +59,13 @@ class _MainPageState extends State<MainPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const AirdeskAndLogo(),
+                // const AirdeskAndLogo(),
                 Padding(
-                  padding: const EdgeInsets.only(top: 5, left: 15, right: 15, bottom: 20),
+                  padding: const EdgeInsets.only(top: 15, left: 15, right: 15, bottom: 20),
                   child: Text(
                     "Share links, texts and files between internet devices and people instantly.",
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: isDark ? Colors.grey : Colors.grey[700]),
                   ),
                 ),
                 // Image.asset("assets/home-Illustration.png"),

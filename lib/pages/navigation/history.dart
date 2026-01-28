@@ -38,7 +38,7 @@ class _HistoryPageState extends State<HistoryPage> {
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
               // const AirdeskAndLogo(),
-              // const SizedBox(height: 10),
+              const SizedBox(height: 15),
               // Row(
               //   children: [
               //     Text("Share History", style: Theme.of((context)).textTheme.headlineSmall),

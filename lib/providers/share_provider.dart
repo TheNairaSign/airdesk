@@ -334,8 +334,8 @@ class ShareProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
 
-      debugPrint("Response status code: ${request.fields}");
-      debugPrint("Request Response: ${response.request}"); 
+      debugPrint("Response status code: ${request.fields} with deskname: $deskName");
+      debugPrint("Request Response: ${response.request}, with message "); 
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Cache the desk code on success
@@ -361,6 +361,10 @@ class ShareProvider extends ChangeNotifier {
         debugPrint('***************');
         debugPrint('Error: ${response.statusCode}, Body: ${response.reasonPhrase}');
         debugPrint('***************');
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid desk name, try again with another desk name'))
+        );
       }
     } catch (error) {
       debugPrint('Error Sending edited data: $error');

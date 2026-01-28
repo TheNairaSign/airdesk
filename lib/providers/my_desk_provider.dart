@@ -94,9 +94,7 @@ class MyDeskProvider extends ChangeNotifier {
     _createLoading = true;
     notifyListeners();
 
-    const baseUrl = 'https://airdesk-be.onrender.com/api/myDesk';
-
-    const url = '$baseUrl/create';
+    const url = 'https://airdeskserver-production.up.railway.app/api/mydesk/create';
 
     debugPrint('Desk creation code: ${ _createDeskController.text}');
 
@@ -179,7 +177,7 @@ class MyDeskProvider extends ChangeNotifier {
       }
 
       // Make API request
-      final url = '${ApiConfig.baseUrl}/api/myDesk/admin/$adminCode';
+      final url = '${ApiConfig.baseUrl}/myDesk/admin/$adminCode';
       final response = await http.get(Uri.parse(url));
       final body = json.decode(response.body);
 
@@ -242,7 +240,7 @@ void _clearAccessDeskController() {
     notifyListeners();
     const config = ApiConfig.baseUrl;
     // Constructs API URL and removes any @ symbols from the desk name for validation
-    final url = '$config/api/myDesk/check/$deskName'.replaceAll('@', '');
+    final url = '$config/mydesk/check/$deskName'.replaceAll('@', '');
 
     try {
       final response = await http.get(Uri.parse(url));

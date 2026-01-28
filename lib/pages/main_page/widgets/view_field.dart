@@ -110,7 +110,7 @@ class _ViewFieldState extends State<ViewField> with SingleTickerProviderStateMix
                   child: Material(
                     elevation: 4.0,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 200),
+                      constraints: const BoxConstraints(maxHeight: 200, minHeight: 50),
                       child: ListView.builder(
                         padding: EdgeInsets.zero,
                         itemCount: options.length,
