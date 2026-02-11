@@ -1,126 +1,56 @@
-// ignore_for_file: unused_field
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-
-import '../utils/download_file.dart';
-import '../utils/snack_bar.dart';
+import '../repositories/download_repository.dart';
 
 class DownloadProvider extends ChangeNotifier {
-  bool _isSuccess = false;
+  final DownloadRepository _downloadRepository = DownloadRepository();
+
   bool _isDownloading = false;
+  bool get isDownloading => _isDownloading;
+
   double _progress = 0.0;
-  
-  Future<void> downloadFile(
-    BuildContext context,
+  double get progress => _progress;
+
+  Future<bool> downloadFile(
     int index,
     List<bool> isDownloadingList,
     String url,
     String fileName,
-    
   ) async {
-      isDownloadingList[index] = true;
+    isDownloadingList[index] = true;
+    notifyListeners();
+
+    try {
+      final path = "/storage/emulated/0/Download/$fileName";
+      await _downloadRepository.downloadFile(url, path);
+      isDownloadingList[index] = false;
       notifyListeners();
-    try {
-      final dio = Dio();
-      final fileName = url.split('/').last;
-      final path ="/storage/emulated/0/Download/$fileName";
-      await dio.download(
-        url,
-        path,
-      ).then((_) {
-        _isSuccess = true;
-      });
-
-      if (_isSuccess && context.mounted) {
-        debugPrint("File download successful");
-        snackBar("Download Successful", context);
-      }
+      return true;
     } catch (e) {
-      if (context.mounted) {
-        debugPrint("Download Error: $e");
-        snackBar("Error downloading file", context);
-      }
-    } finally {
-        isDownloadingList[index] = false;
-        notifyListeners();
-    } 
-  }
-  Future<void> downloadFiles(
-    BuildContext context,
-    List<String> urls,
-    
-  ) async {
+      isDownloadingList[index] = false;
       notifyListeners();
-    try {
-      final dio = Dio();
-      for (String url in urls) {
-        final fileName = url.split('/').last;
-        final path ="/storage/emulated/0/Download/$fileName";
-        await dio.download(
-          url,
-          path,
-        ).then((_) {
-          _isSuccess = true;
-        });
-        }
-
-      if (_isSuccess && context.mounted) {
-        debugPrint("Downloaded all");
-        snackBar("Download All successfully", context);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        debugPrint("Download Error: $e");
-        snackBar("Error downloading file", context);
-      }
-    } finally {
-        notifyListeners();
-    } 
-  }
-
-
-  Future<void> downloadMultiple(
-    String url, 
-    String fileName,
-    BuildContext context,
-    ) async {
-    try {
-      FileDownload().startDownloading(
-          context,
-          (receivedBytes, totalBytes) {
-              _progress = receivedBytes / totalBytes;
-              notifyListeners();
-          },
-          url,
-          fileName,
-          () {
-              _isDownloading = false;
-              notifyListeners();
-          });
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      return false;
     }
   }
 
-  Future<void> downloadAllFiles(List<Map<String, String>> files, Function(int, int) onProgress) async {
-    int total = files.length;
-    int completed = 0;
-
-    final dio = Dio();
-    
-
-
-    for (var file in files) {
-      await dio.download(file['url']!, file['filename']!);
-      completed++;
-      // Update the progress for overall completion
-      onProgress(completed, total);
+  Future<bool> downloadFiles(List<String> urls) async {
+    _isDownloading = true;
+    notifyListeners();
+    try {
+      await _downloadRepository.downloadMultipleFiles(urls);
+      _isDownloading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isDownloading = false;
+      notifyListeners();
+      return false;
     }
   }
 
+
+
+  Future<void> downloadAllFiles(
+      List<Map<String, String>> files, Function(int, int) onProgress) async {
+    await _downloadRepository.downloadAllFiles(files, onProgress);
+  }
 }

@@ -2,8 +2,8 @@ import 'package:air_desk/providers/my_desk_provider.dart';
 import 'package:air_desk/utils/global_colours.dart';
 import 'package:blurbackground/blurbackground.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:provider/provider.dart';
 
 void showAccessDialog(BuildContext context, {String? code}) {
 
@@ -15,17 +15,19 @@ void showAccessDialog(BuildContext context, {String? code}) {
   );
 }
 
-class AccessDialog extends StatefulWidget {
+class AccessDialog extends ConsumerStatefulWidget {
   const AccessDialog({super.key, this.code});
   final String? code;
 
   @override
-  State<AccessDialog> createState() => _AccessDialogState();
+  ConsumerState<AccessDialog> createState() => _AccessDialogState();
 }
 
-class _AccessDialogState extends State<AccessDialog> {
+class _AccessDialogState extends ConsumerState<AccessDialog> {
 
   final _globalKey = GlobalKey<FormState>();
+
+  TextEditingController accessDeskController = TextEditingController();
 
   @override
   initState() {
@@ -33,12 +35,15 @@ class _AccessDialogState extends State<AccessDialog> {
     debugPrint('AccessDialog initState');
     if (widget.code != null) {
       debugPrint(widget.code);
-      context.read<MyDeskProvider>().accessDeskController.text = widget.code!;
+      accessDeskController.text = widget.code!;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final myDesk = ref.read(myDeskProvider.notifier);
+    final isLoading = ref.watch(myDeskProvider).accessLoading;
+    
 
     const loadingSpinkit = SpinKitRing(
       color: Colors.white,
@@ -64,14 +69,15 @@ class _AccessDialogState extends State<AccessDialog> {
           textAlign: TextAlign.start,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
         ),
-        content: Consumer<MyDeskProvider>(
-          builder: (context, myDesk, child) { 
-            return Form(
+        content: Form(
               key: _globalKey,
               child: TextFormField(
                 cursorColor: Colors.blue,
                 obscureText: false,
-                controller: myDesk.accessDeskController,
+                controller: accessDeskController,
+                onChanged: (value) {
+                    myDesk.storeAccessCode(value);
+                },
                 decoration: InputDecoration(
                   hintText: 'Enter your admin access code',
                   // hintStyle: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
@@ -104,44 +110,38 @@ class _AccessDialogState extends State<AccessDialog> {
                   return null;
                 },
               ),
-            );
-          }
-        ),
+            ),
         actions: [
-          Consumer<MyDeskProvider>(
-            builder: (context, myDesk, child) {
-              return Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_globalKey.currentState!.validate()) {
-                      FocusScope.of(context).unfocus();
-                      myDesk.getCreatorDesks(context);
-                    } else {
-                      debugPrint('Validation failed');
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlobalColours(context).buttonColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: myDesk.accessLoading ? Center(
-                    child: Row (
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        loadingSpinkit,
-                        const SizedBox(width: 10),
-                        Text('Accessing', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),)
-                      ],
-                    ),
-                  )
-                  : Text(
-                    'Access MyDesk',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                if (_globalKey.currentState!.validate()) {
+                  FocusScope.of(context).unfocus();
+                  myDesk.getCreatorDesks();
+                } else {
+                  debugPrint('Validation failed');
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: GlobalColours(context).buttonColor,
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: isLoading ? Center(
+                child: Row (
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    loadingSpinkit,
+                    const SizedBox(width: 10),
+                    Text('Accessing', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),)
+                  ],
                 ),
-              );
-            }
+              )
+              : Text(
+                'Access MyDesk',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
         ],
       ),

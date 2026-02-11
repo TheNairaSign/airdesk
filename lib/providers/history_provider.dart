@@ -1,81 +1,56 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../model/history_model.dart';
+import '../repositories/history_repository.dart';
 
-class HistoryProvider extends ChangeNotifier {
+class HistoryNotifier extends StateNotifier<List<HistoryItem>> {
+  final HistoryRepository _historyRepository;
 
-  List<HistoryItem> _historyItems = [];
-  List<HistoryItem> get historyItems => _historyItems;
-  
-  // Save history items to SharedPreferences
-  Future<void> saveHistoryItems(List<HistoryItem> items) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    
-    // Convert the list of HistoryItem objects to a list of JSON strings
-    List<String> jsonStringList = items.map((item) => json.encode(item.toMap())).toList();
-
-    debugPrint("The History list: $jsonStringList");
-    
-    await prefs.setStringList('myHistory', jsonStringList);
-  }
+  HistoryNotifier(this._historyRepository) : super([]);
 
   // Retrieve history items from SharedPreferences
-  Future<List<HistoryItem>?> getHistoryItems() async {
-    debugPrint("GetHistoryItem function");
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? jsonStringList = prefs.getStringList('myHistory');
-
-    debugPrint("The History list: $jsonStringList");
-    
-    if (jsonStringList != null) {
-      // Convert the list of JSON strings back into a list of HistoryItem objects
-      return jsonStringList.map((jsonString) => HistoryItem.fromMap(json.decode(jsonString))).toList();
-    }
-    return null;
+  Future<List<HistoryItem>> getHistoryItems() async {
+    final items = await _historyRepository.getHistoryItems();
+    state = items;
+    return items;
   }
 
   // Update history by retrieving new data and saving it
   Future<void> updateHistory(List<HistoryItem> newData) async {
-    _historyItems = newData;
-    await saveHistoryItems(_historyItems);
-    notifyListeners(); // Notify listeners to update the UI
+    state = newData;
+    await _historyRepository.saveHistoryItems(state);
   }
 
   // Load history when the provider is initialized
   Future<void> loadHistory() async {
-    List<HistoryItem>? items = await getHistoryItems();
-    if (items != null) {
-      _historyItems = items;
-      notifyListeners();
-    }
+    state = await _historyRepository.getHistoryItems();
   }
 
   Timer? _timer;
 
   void _handleTimerTick() {
-    if (_historyItems.isEmpty) {
+    if (state.isEmpty) {
       _timer?.cancel();
       _timer = null;
       return;
     }
 
     final now = DateTime.now();
-    final expiredItems = _historyItems.where((item) {
-      final expiryTime = DateTime.parse(item.createdAt).add(const Duration(hours: 24));
+    final expiredItems = state.where((item) {
+      final expiryTime =
+          DateTime.parse(item.createdAt).add(const Duration(hours: 24));
       return now.isAfter(expiryTime);
     }).toList();
 
     if (expiredItems.isNotEmpty) {
-      _historyItems.removeWhere((item) => expiredItems.contains(item));
-      // updateHistory also calls saveHistoryItems and notifyListeners
-      updateHistory(_historyItems);
+      final newList = List<HistoryItem>.from(state)
+        ..removeWhere((item) => expiredItems.contains(item));
+      updateHistory(newList);
     } else {
-      // If no items expired, still notify listeners to update countdowns in the UI.
-      notifyListeners();
+      // If no items expired, still update state to refresh countdowns in the UI.
+      state = List.from(state);
     }
   }
 
@@ -107,3 +82,8 @@ class HistoryProvider extends ChangeNotifier {
     super.dispose();
   }
 }
+
+final historyNotifierProvider = StateNotifierProvider<HistoryNotifier, List<HistoryItem>>((ref) {
+  final repository = ref.read(historyRepositoryProvider);
+  return HistoryNotifier(repository);
+});

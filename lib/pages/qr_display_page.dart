@@ -1,27 +1,25 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:air_desk/pages/main_page/widgets/code_container.dart';
 import 'package:air_desk/providers/share_provider.dart';
 import 'package:air_desk/widgets/airdesk_and_logo.dart';
 import 'package:air_desk/widgets/edit_code_container.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class QRDisplayPage extends StatelessWidget {
+class QRDisplayPage extends ConsumerWidget {
   const QRDisplayPage({super.key, required this.data, required this.code, this.editCode});
   final String data, code;
   final String? editCode;
 
 
   @override
-  Widget build(BuildContext context) {
-    final cp = context.read<ShareProvider>();
-    final shareController = cp.shareController;
-    return WillPopScope(
-      onWillPop: () async {
-        shareController.clear();
-        return true;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shareController = ref.read(shareControllerProvider);
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) {
+          shareController.clear();
+        }
       },
       child: SafeArea(
         child: Scaffold(

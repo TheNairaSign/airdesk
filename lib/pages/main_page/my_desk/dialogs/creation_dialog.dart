@@ -4,6 +4,7 @@ import 'package:air_desk/utils/global_colours.dart';
 import 'package:blurbackground/blurbackground.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 
 void showCreationDialog(BuildContext context) {
@@ -16,53 +17,51 @@ void showCreationDialog(BuildContext context) {
   );
 }
 
-class CreationDialog extends StatelessWidget {
+class CreationDialog extends ConsumerWidget {
   CreationDialog({super.key});
 
   final _globalKey = GlobalKey<FormState>();
 
+  final creationController = TextEditingController();
+
   @override
-  Widget build(BuildContext context) {
-    final myDeskProvider = Provider.of<MyDeskProvider>(context, listen: false);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final myDesk = ref.watch(myDeskProvider);
     
     return BlurBackground(
       blurX: 5,
       blurY: 5,
       child: AlertDialog(
         backgroundColor: GlobalColours(context).containerColor,
-        icon: Consumer<MyDeskProvider>(
-          builder: (context, myDesk, child) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text('Create MyDesk', style: Theme.of(context).textTheme.bodyLarge),
+        icon: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text('Create MyDesk', style: Theme.of(context).textTheme.bodyLarge),
 
-                if (myDesk.checkingDesk) ... [
-                  const SizedBox(width: 5),
-                  const SizedBox(
-                    height: 7,
-                    width: 7,
-                    child: CircularProgressIndicator(color: Colors.green, strokeWidth: 1)
-                  )
-                ]
-                else if (myDesk.createDeskController.text.length == 8 && myDesk.deskExists == true)...[
-                  const SizedBox(width: 5),
-                  Text('(@${myDesk.createDeskController.text} already exists)', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.red)),
-                ]
-              ],
-            );
-          }
+            if (myDesk.checkingDesk) ... [
+              const SizedBox(width: 5),
+              const SizedBox(
+                height: 7,
+                width: 7,
+                child: CircularProgressIndicator(color: Colors.green, strokeWidth: 1)
+              )
+            ]
+            else if (creationController.text.length == 8 && myDesk.deskExists == true)...[
+              const SizedBox(width: 5),
+              Text('(@${creationController.text} already exists)', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.red)),
+            ]
+          ],
         ),
         title: const ChooseYourCodeContainer(),
         content: Form(
           key: _globalKey,
-          child: const CreationForm()
+          child: CreationForm(controller: creationController,)
         ),
         actions: [ 
           CreateButton(() async {
             if (_globalKey.currentState!.validate()) {
               FocusScope.of(context).unfocus();
-              await myDeskProvider.createDesk(context);
+              await ref.read(myDeskProvider.notifier).createDesk(creationController.text);
             }
           }) 
         ],
@@ -71,27 +70,27 @@ class CreationDialog extends StatelessWidget {
   }
 }
 
-class CreationForm extends StatefulWidget {
-  const CreationForm({super.key});
+class CreationForm extends ConsumerStatefulWidget {
+  const CreationForm({super.key, required this.controller});
+  final TextEditingController controller;
 
   @override
-  State<CreationForm> createState() => _CreationFormState();
+  ConsumerState<CreationForm> createState() => _CreationFormState();
 }
 
-class _CreationFormState extends State<CreationForm> {
+class _CreationFormState extends ConsumerState<CreationForm> {
   @override
   Widget build(BuildContext context) {
-    return Consumer<MyDeskProvider>(
-      builder: (context, myDeskProvider, child) {
-        return TextFormField(
-          errorBuilder: (context, errorText) => Text(myDeskProvider.errorMessages(), style: const TextStyle(color: Colors.red),),
-          controller: myDeskProvider.createDeskController,
+    final myDesk = ref.watch(myDeskProvider.notifier);
+    return TextFormField(
+          errorBuilder: (context, errorText) => Text(myDesk.errorMessages(errorText), style: const TextStyle(color: Colors.red),),
+          controller: widget.controller,
           // enabled: !_isGeneratingAutoCode,
           onChanged: (value) {
             setState(() {
-              myDeskProvider.updateValidity(value);
+              myDesk.updateValidity(value);
               if (value.length == 8) {
-                myDeskProvider.checkDesk(context, value);
+                myDesk.checkDesk(value);
               }
             });
           },
@@ -131,36 +130,33 @@ class _CreationFormState extends State<CreationForm> {
             // }
             // return null;
           }
-        );
-      }
     );
   }
 }
 
-class CreateButton extends StatefulWidget {
+class CreateButton extends ConsumerStatefulWidget {
   const CreateButton(this.onPressed, {super.key});
   final VoidCallback? onPressed;
 
   @override
-  State<CreateButton> createState() => _CreateButtonState();
+  ConsumerState<CreateButton> createState() => _CreateButtonState();
 }
 
-class _CreateButtonState extends State<CreateButton> {
+class _CreateButtonState extends ConsumerState<CreateButton> {
   @override
   Widget build(BuildContext context) {
+    final myDesk = ref.watch(myDeskProvider);
     return  Center(
-      child: Consumer<MyDeskProvider>(
-        builder: (context, myDeskProvider, child) {
-          return ElevatedButton(
+      child: ElevatedButton(
             onPressed: widget.onPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: myDeskProvider.deskNameValid ? GlobalColours(context).buttonColor : Colors.grey,
+              backgroundColor: myDesk.deskNameValid ? GlobalColours(context).buttonColor : Colors.grey,
               disabledBackgroundColor: Colors.grey,
               disabledForegroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: myDeskProvider.createLoading 
+            child: myDesk.createLoading 
               ? Center(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -191,9 +187,7 @@ class _CreateButtonState extends State<CreateButton> {
                   fontWeight: FontWeight.bold
                 ),
             ),
-          );
-        }
-      ),
+          )
       );
   }
 }

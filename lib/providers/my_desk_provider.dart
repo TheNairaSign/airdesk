@@ -1,61 +1,110 @@
-// ignore_for_file: use_build_context_synchronously
-
-import 'dart:convert';
 import 'dart:math';
 
-import 'package:air_desk/api/api_config.dart';
 import 'package:air_desk/model/create_desk.dart';
 import 'package:air_desk/model/my_desk.dart';
-import 'package:air_desk/pages/main_page/my_desk/my_desk_created_page.dart';
-import 'package:air_desk/pages/main_page/my_desk/my_desk_creator_page.dart';
-import 'package:air_desk/utils/snack_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
-class MyDeskProvider extends ChangeNotifier {
+import '../repositories/my_desk_repository.dart';
+
+class DeskState {
+  final bool isLoading;
+  final bool deskNameValid;
+  final String? publicCode;
+  final String? adminCode;
+  final bool createLoading;
+  final MyDeskData? myDeskData;
+  final bool accessLoading;
+  final bool deskAvailable;
+  final bool? deskExists;
+  final bool checkingDesk;
+
+  const DeskState({
+    required this.isLoading,
+    required this.deskNameValid,
+    this.publicCode,
+    this.adminCode,
+    required this.createLoading,
+    this.myDeskData,
+    required this.accessLoading,
+    required this.deskAvailable,
+    this.deskExists,
+    required this.checkingDesk,
+  });
+
+  DeskState copyWith({
+    bool? isLoading,
+    bool? deskNameValid,
+    String? publicCode,
+    String? adminCode,
+    bool? createLoading,
+    MyDeskData? myDeskData,
+    bool? accessLoading,
+    bool? deskAvailable,
+    bool? deskExists,
+    bool? checkingDesk,
+  }) {
+    return DeskState(
+      isLoading: isLoading ?? this.isLoading,
+      deskNameValid: deskNameValid ?? this.deskNameValid,
+      publicCode: publicCode ?? this.publicCode,
+      adminCode: adminCode ?? this.adminCode,
+      createLoading: createLoading ?? this.createLoading,
+      myDeskData: myDeskData ?? this.myDeskData,
+      accessLoading: accessLoading ?? this.accessLoading,
+      deskAvailable: deskAvailable ?? this.deskAvailable,
+      deskExists: deskExists ?? this.deskExists,
+      checkingDesk: checkingDesk ?? this.checkingDesk,
+    );
+  }
+}
+
+
+final myDeskRepositoryProvider = Provider<MyDeskRepository>((ref) => MyDeskRepository());
+
+// final accessDeskControllerProvider = Provider<TextEditingController>((ref) {
+//   final controller = TextEditingController();
+//   ref.onDispose(() => controller.dispose());
+//   return controller;
+// });
+
+// final createDeskControllerProvider = Provider<TextEditingController>((ref) {
+//   final controller = TextEditingController();
+//   ref.onDispose(() => controller.dispose());
+//   return controller;
+// });
+
+
+final deskNotifierProvider = StateNotifierProvider<DeskNotifier, DeskState>((ref) {
+  final repo = ref.watch(myDeskRepositoryProvider);
+  return DeskNotifier(repo);
+});
+
+class DeskNotifier extends StateNotifier<DeskState> {
+  final MyDeskRepository _repo;
+
+  DeskNotifier(this._repo) : super(const DeskState(
+    isLoading: false,
+    deskNameValid: false,
+    createLoading: false,
+    accessLoading: false,
+    deskAvailable: true,
+    checkingDesk: false,
+  ));
 
   Future<void> storeAccessCode(String value) async {
-    debugPrint('Stored access code: $value');
-
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString('accessCode', value);
-    notifyListeners();
+    await _repo.storeAccessCode(value);
   }
-
-  final _createDeskController = TextEditingController();
-  TextEditingController get createDeskController => _createDeskController;
-
-  final _accessDeskController = TextEditingController();
-  TextEditingController get accessDeskController => _accessDeskController;
-
-  final bool _isLoading = false;
-  bool get isLoading => _isLoading;
-
-  bool _deskNameValid = false;
-  bool get deskNameValid => _deskNameValid;
 
   void updateValidity(String value) {
-    debugPrint('...Updating validity...');
-    if (value.isEmpty) {
-      _deskNameValid = false;
-      notifyListeners();
-      return;
-    }
-    if (value.isNotEmpty && value.length < 6) {
-      _deskNameValid = false;
-      notifyListeners();
-      return;
+    if (value.isEmpty || value.length < 6) {
+      state = state.copyWith(deskNameValid: false);
     } else {
-      _deskNameValid = true;
-      notifyListeners();
+      state = state.copyWith(deskNameValid: true);
     }
-    debugPrint('Validity: $_deskNameValid');
-    notifyListeners();
   }
 
-  String errorMessages() {
-    final value = _createDeskController.text;
+  String errorMessages(String value) {
     if (value.isEmpty) {
       return 'Please enter a desk name';
     } else if (value.length < 6) {
@@ -70,210 +119,83 @@ class MyDeskProvider extends ChangeNotifier {
 
   String generateMixedCode() {
     const String chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final StringBuffer buffer = StringBuffer();
-    final Random random = Random();
-
+    final buffer = StringBuffer();
+    final random = Random();
     for (int i = 0; i < 6; i++) {
       buffer.write(chars[random.nextInt(chars.length)]);
     }
-    debugPrint('Generated code: ${buffer.toString()}');
-
     return buffer.toString();
   }
 
-  String? _publicCode = '';
-  String? get public => _publicCode;
-
-  String? _adminCode = '';
-  String? get admin => _adminCode;
-
-  bool _createLoading = false;
-  bool get createLoading => _createLoading;
-
-  Future<void> createDesk(BuildContext context) async {
-    _createLoading = true;
-    notifyListeners();
-
-    const url = 'https://airdeskserver-production.up.railway.app/api/mydesk/create';
-
-    debugPrint('Desk creation code: ${ _createDeskController.text}');
-
+  Future<CreateDesk> createDesk(String deskName) async {
+    state = state.copyWith(createLoading: true);
     try {
-      final response = await http.post(
-        Uri.parse(url),
-        body: jsonEncode({
-          'customCode': _createDeskController.text,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      final desk = await _repo.createDesk(deskName);
+      state = state.copyWith(
+        publicCode: desk.publicCode,
+        adminCode: desk.adminCode,
+        createLoading: false,
       );
-      _createLoading = false;
-      notifyListeners();
-
-      final json = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        debugPrint('Desk created successfully');
-        debugPrint('Create Desk Response: $json');
-
-        final desk = CreateDesk.fromJson(json['data']);
-        debugPrint('Create Desk Response: $desk');
-
-        _publicCode = desk.publicCode;
-        _adminCode = desk.adminCode;
-        debugPrint('Public Code: $_publicCode');
-        debugPrint('Admin Code: $_adminCode');
-
-        notifyListeners();
-        _createDeskController.clear();
-        Navigator.of(context).pop();
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const MyDeskCreatedPage()));
-
-        
-      } else if (response.statusCode == 500 && json['message'].toString().contains('already taken')) {
-        _deskExists = true;
-        notifyListeners();
-        debugPrint('Desk already exists with status code: ${response.statusCode}');
-        _createLoading = false;
-        notifyListeners();
-      } else {
-        _createLoading = false;
-        notifyListeners();
-        debugPrint('Failed to create desk: ${response.statusCode}');
-        debugPrint('Response body: ${response.body}');
+      return desk;
+    } on Exception catch (e) {
+      if (e.toString().contains('already taken')) {
+        state = state.copyWith(deskExists: true, createLoading: false);
       }
-
-    } on http.ClientException catch (e) {
-      debugPrint('Failed to create desk: $e');
-      _createLoading = false;
-      notifyListeners();
+      rethrow;
     } finally {
-      // _createDeskController.clear();
-      // _deskExists = false;
-      notifyListeners();
+      state = state.copyWith(createLoading: false);
     }
   }
 
-  MyDeskData? _myDeskData;
-  MyDeskData? get myDeskData => _myDeskData;
+  void updateAdminCode(String value) {
+    state = state.copyWith(adminCode: value);
+  }
 
-  bool _accessLoading = false;
-  bool get accessLoading => _accessLoading;
 
-  bool _deskAvailable = true;
-  bool get deskAvailable => _deskAvailable;
-
-  Future<MyDeskData?> getCreatorDesks(BuildContext context, {bool load = true}) async {
+  Future<MyDeskData?> getCreatorDesks({bool load = true}) async {
+    if (load && !state.accessLoading) {
+      state = state.copyWith(accessLoading: true);
+    }
     try {
-      // Get stored access code or use input
-      final prefs = await SharedPreferences.getInstance();
-      final existing = prefs.getString('accessCode');
-      String? adminCode = _accessDeskController.text.isEmpty ? existing : _accessDeskController.text;
-
-      // Set loading state if needed
-      if (load) {
-        _setLoadingState(true);
+      String? code = state.adminCode;
+      if (code == null) {
+         code = await _repo.getAccessCode();
+         if (code != null) {
+           state = state.copyWith(adminCode: code);
+         }
+      }
+      
+      if (code == null) {
+        throw Exception('Access code not found');
       }
 
-      // Make API request
-      final url = '${ApiConfig.baseUrl}/myDesk/admin/$adminCode';
-      final response = await http.get(Uri.parse(url));
-      final body = json.decode(response.body);
-
-      debugPrint('Get creator desks response: $body with status code: ${response.statusCode}');
-
-      // Handle successful response
-      if (response.statusCode == 200) {
-        _myDeskData = MyDeskData.fromJson(body['data']);
-        // Store new access code if needed
-        if (load && existing != adminCode && adminCode != null) {
-          debugPrint('Storing new access code: $adminCode');
-          await storeAccessCode(adminCode);
-        }
-
-        // Navigate if loading
-        if (load) {
-          Navigator.of(context)
-            ..pop()
-            ..push(MaterialPageRoute(
-              builder: (context) => const MyDeskCreatorPage(),
-            ));
-        }
-      } else {
-        snackBar('Desk does not exist', context, isError: true);
-        _clearAccessDeskController();
-        return null;
-      }
-
-      return _myDeskData;
-
+      final data = await _repo.getCreatorDesks(code);
+      state = state.copyWith(myDeskData: data, accessLoading: false);
+      return data;
     } catch (e) {
-      debugPrint('Error getting creator desks: $e');
-      snackBar('Error getting creator desks', context, isError: true);
-      _clearAccessDeskController();
-      return null;
-    } finally {
-      if (load) {
-        _setLoadingState(false);
-     }
-  }
-}
-
-void _setLoadingState(bool isLoading) {
-  _accessLoading = isLoading;
-  notifyListeners();
-}
-
-void _clearAccessDeskController() {
-  _accessDeskController.clear();
-}
-
-  bool? _deskExists;
-  bool? get deskExists => _deskExists;
-
-  bool _checkingDesk = false;
-  bool get checkingDesk => _checkingDesk;
-
-  Future<bool?> checkDesk(BuildContext context, String deskName) async {
-    _checkingDesk = true;
-    notifyListeners();
-    const config = ApiConfig.baseUrl;
-    // Constructs API URL and removes any @ symbols from the desk name for validation
-    final url = '$config/mydesk/check/$deskName'.replaceAll('@', '');
-
-    try {
-      final response = await http.get(Uri.parse(url));
-      final body = json.decode(response.body);
-      debugPrint('Get creator desk body: $body');
-      _checkingDesk = false;
-      notifyListeners();
-      if (body['data']['exists'] == false) {
-        _deskExists = false;
-        debugPrint('Desk does not exist');
-        snackBar('Desk does not exist', context, isError: true);
-        notifyListeners();
-        return false;
-      } else {
-        debugPrint('Desk exists');
-        _deskExists = true;
-        notifyListeners();
-        return true;
+      if (state.accessLoading) {
+        state = state.copyWith(accessLoading: false);
       }
-    } on http.ClientException catch (error) {
-      debugPrint('Error getting creator desks: $error');
-      snackBar('Error getting creator desks', context, isError: true);
-      _checkingDesk = false;
-      notifyListeners();
-      return null;
+      rethrow;
     }
   }
 
-
-  @override
-  void dispose() {
-    super.dispose();
-    _createDeskController.dispose();
-    _accessDeskController.dispose();
+  Future<bool?> checkDesk(String deskName) async {
+    state = state.copyWith(checkingDesk: true);
+    try {
+      final result = await _repo.checkDesk(deskName);
+      state = state.copyWith(deskExists: result, checkingDesk: false);
+      return result;
+    } catch (error) {
+      state = state.copyWith(checkingDesk: false);
+      rethrow;
+    } finally {
+      state = state.copyWith(checkingDesk: false);
+    }
   }
 }
+
+
+final myDeskProvider = StateNotifierProvider.autoDispose<DeskNotifier, DeskState>((ref) {
+  return DeskNotifier(ref.read(myDeskRepositoryProvider));
+});

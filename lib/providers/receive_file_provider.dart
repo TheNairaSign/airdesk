@@ -1,120 +1,70 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:flutter/material.dart';
+
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_sharing_intent/flutter_sharing_intent.dart';
 import 'package:flutter_sharing_intent/model/sharing_file.dart';
-import 'package:path_provider/path_provider.dart';
-// import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-// ignore: depend_on_referenced_packages
-import 'package:path/path.dart' as path;
 
-class ReceiveFileProvider extends ChangeNotifier {
-  /// Remove a shared file by index and notify listeners
+import '../repositories/receive_file_repository.dart';
+
+class ReceiveFileNotifier extends StateNotifier<ReceiveFileState> {
+  final ReceiveFileRepository _receiveFileRepository;
+  StreamSubscription? _intentSub;
+
+  ReceiveFileNotifier(this._receiveFileRepository) : super(const ReceiveFileState());
+
+  /// Remove a shared file by index
   void removeSharedFile(int index) {
-    if (index >= 0 && index < _sharedFiles.length) {
-      _sharedFiles.removeAt(index);
-      notifyListeners();
+    if (index >= 0 && index < state.sharedFiles.length) {
+      final updated = List<SharedFile>.from(state.sharedFiles)..removeAt(index);
+      state = state.copyWith(sharedFiles: updated);
     }
   }
-  StreamSubscription? _intentSub;
+
+  /// Clear all shared files
+  void clearFiles() {
+    state = state.copyWith(sharedFiles: []);
+  }
+
   StreamSubscription? get intentSub => _intentSub;
 
-  File? _file;                          // For shared files
-  String? _sharedText;                  // For shared text
-  File? get file => _file;
-  String? get sharedText => _sharedText;
+  String? get sharedText => state.sharedText;
 
-  final List<SharedFile> _sharedFiles = [];
-  List<SharedFile> get sharedFiles => _sharedFiles;
+  List<SharedFile> get sharedFiles => state.sharedFiles;
 
   // Handle shared files
-  Future<File?> getSharedFile(SharedFile sharedFile) async {
-  
-    try {
-      final file = File(sharedFile.value!);
-      if (await file.exists()) {
-        final appDir = await getApplicationDocumentsDirectory();
-        final fileName = path.basename(file.path);
-        _file = await file.copy('${appDir.path}/$fileName');
-        debugPrint('File saved to: ${_file?.path}');
-        notifyListeners();
-        return _file;
-      } else {
-        debugPrint('Shared file does not exist: ${sharedFile.value}');
-        return null;
+  Future<void> _handleSharedFiles(List<SharedFile> value) async {
+    final processedFiles = <SharedFile>[];
+    String? newText = state.sharedText;
+    for (var sharedItem in value) {
+      if (sharedItem.type == SharedMediaType.FILE ||
+          sharedItem.type == SharedMediaType.IMAGE ||
+          sharedItem.type == SharedMediaType.VIDEO) {
+        final file = await _receiveFileRepository.copySharedFile(sharedItem);
+        if (file != null) {
+          processedFiles.add(sharedItem);
+        }
+      } else if (sharedItem.type == SharedMediaType.TEXT) {
+        newText = await _receiveFileRepository.saveSharedText(sharedItem.value!);
       }
-    } catch (e) {
-      debugPrint('Error accessing shared file: $e');
-      return null;
     }
-  }
-
-  // Handle shared text
-  Future<String?> saveSharedText(String text) async {
-    try {
-      if (text.isNotEmpty) {
-        _sharedText = text;
-        // Optionally save text to a file
-        final appDir = await getApplicationDocumentsDirectory();
-        final file = File('${appDir.path}/shared_text_${DateTime.now().millisecondsSinceEpoch}.txt');
-        await file.writeAsString(text);
-        debugPrint('Text saved to: ${file.path}');
-        notifyListeners();
-        return text;
-      }
-    } catch (e) {
-      debugPrint('Error saving shared text: $e');
-      return null;
-    }
-    return null;
+    state = state.copyWith(
+      sharedFiles: processedFiles,
+      sharedText: newText,
+    );
   }
 
   // Update subscription for both media and text
-  void updateIntentSub() {
+  void listenToSharingIntent() {
     _intentSub = FlutterSharingIntent.instance.getMediaStream().listen((value) async {
-      debugPrint('Received shared content: ${value.map((f) => f.toString())}');
-      
-      final processedFiles = <SharedFile>[];
-      for (var sharedItem in value) {
-        if (sharedItem.type == SharedMediaType.FILE || 
-            sharedItem.type == SharedMediaType.IMAGE || 
-            sharedItem.type == SharedMediaType.VIDEO) {
-          final file = await getSharedFile(sharedItem);
-          if (file != null) {
-            processedFiles.add(sharedItem);
-          }
-        } else if (sharedItem.type == SharedMediaType.TEXT) {
-          await saveSharedText(sharedItem.value!); // Text is passed in path for text type
-        }
-      }
-      _sharedFiles.clear();
-      _sharedFiles.addAll(processedFiles);
-      notifyListeners();
+      await _handleSharedFiles(value);
     });
   }
 
   // Get initial media and text
   void getInitialContent() {
     FlutterSharingIntent.instance.getInitialSharing().then((value) async {
-      debugPrint('Initial shared content: ${value.map((f) => f.toString())}');
-      
-      final processedFiles = <SharedFile>[];
-      for (var sharedItem in value) {
-        if (sharedItem.type == SharedMediaType.FILE || 
-            sharedItem.type == SharedMediaType.IMAGE || 
-            sharedItem.type == SharedMediaType.VIDEO) {
-          final file = await getSharedFile(sharedItem);
-          if (file != null) {
-            processedFiles.add(sharedItem);
-          }
-        } else if (sharedItem.type == SharedMediaType.TEXT) {
-          await saveSharedText(sharedItem.value!); // Text is passed in path
-        }
-      }
-      _sharedFiles.clear();
-      _sharedFiles.addAll(processedFiles);
-      notifyListeners();
+      await _handleSharedFiles(value);
     });
   }
 
@@ -124,3 +74,32 @@ class ReceiveFileProvider extends ChangeNotifier {
     super.dispose();
   }
 }
+
+class ReceiveFileState {
+  final List<SharedFile> sharedFiles;
+  final String? sharedText;
+
+  const ReceiveFileState({
+    this.sharedFiles = const [],
+    this.sharedText,
+  });
+
+  ReceiveFileState copyWith({
+    List<SharedFile>? sharedFiles,
+    String? sharedText,
+  }) {
+    return ReceiveFileState(
+      sharedFiles: sharedFiles ?? this.sharedFiles,
+      sharedText: sharedText ?? this.sharedText,
+    );
+  }
+}
+
+final receiveFileProvider = StateNotifierProvider<ReceiveFileNotifier, ReceiveFileState>(
+  (ref) {
+    final repo = ref.watch(receiveFileRepositoryProvider);
+    return ReceiveFileNotifier(repo)
+      ..getInitialContent()
+      ..listenToSharingIntent();
+  },
+);

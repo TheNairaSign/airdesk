@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use, use_build_context_synchronously, unused_local_variable
-
 import 'package:air_desk/model/image_data.dart';
 import 'package:air_desk/pages/data_page/widgets/content_container.dart';
 import 'package:air_desk/pages/data_page/widgets/file_display_container.dart';
@@ -7,9 +5,10 @@ import 'package:air_desk/pages/data_page/widgets/qr_and_countdown_container.dart
 import 'package:air_desk/providers/view_provider.dart';
 import 'package:air_desk/widgets/airdesk_and_logo.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class QrDataPage extends StatefulWidget {
+
+class QrDataPage extends ConsumerStatefulWidget {
   final String? data, content;
   final List<ImageData>? files;
   final DateTime createdAt;
@@ -23,10 +22,10 @@ class QrDataPage extends StatefulWidget {
   });
 
   @override
-  State<QrDataPage> createState() => _QrDataPageState();
+  ConsumerState<QrDataPage> createState() => _QrDataPageState();
 }
 
-class _QrDataPageState extends State<QrDataPage> {
+class _QrDataPageState extends ConsumerState<QrDataPage> {
 
   @override
   Widget build(BuildContext context) {
@@ -34,13 +33,12 @@ class _QrDataPageState extends State<QrDataPage> {
     String extractedValue = widget.data?.replaceAll('"', '') ?? 'No code';
     final String receivedCode = extractedValue.trim();
 
-    final cP = context.read<ViewProvider>();
-    final viewControl = cP.viewController;
+    final viewControl = ref.read(viewControllerProvider);
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
         viewControl.clear();
-        return true;
       },
       child: Scaffold(
         appBar: AppBar(elevation: 0, forceMaterialTransparency: true),

@@ -1,13 +1,9 @@
 import 'package:air_desk/pages/startup_page.dart';
-import 'package:air_desk/providers/history_provider.dart';
-import 'package:air_desk/providers/my_desk_provider.dart';
-import 'package:air_desk/providers/receive_file_provider.dart';
-import 'package:air_desk/providers/view_provider.dart';
-import 'package:air_desk/providers/share_provider.dart';
 import 'package:air_desk/themes/dark_theme.dart';
 import 'package:air_desk/themes/light_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/download_provider.dart';
@@ -20,16 +16,9 @@ void main() async {
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => ShareProvider()),
-        ChangeNotifierProvider(create: (context) => ViewProvider()),
-        ChangeNotifierProvider(create: (context) => DownloadProvider()),
-        ChangeNotifierProvider(create: (context) => HistoryProvider()),
-        ChangeNotifierProvider(create: (context) => ReceiveFileProvider()),
-        ChangeNotifierProvider(create: (context) => MyDeskProvider()),
-      ],
-      child: const AirDesk(),
+    ChangeNotifierProvider(
+      create: (context) => DownloadProvider(),
+      child: const ProviderScope(child: AirDesk()),
     ),
   );
 }

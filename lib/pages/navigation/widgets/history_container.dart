@@ -1,61 +1,55 @@
 import 'package:air_desk/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../model/history_model.dart';
 import '../../../providers/history_provider.dart';
 import '../../../providers/view_provider.dart';
 
-class HistoryContainer extends StatefulWidget {
+class HistoryContainer extends ConsumerStatefulWidget {
   const HistoryContainer({super.key});
 
   @override
-  State<HistoryContainer> createState() => _HistoryContainerState();
+  ConsumerState<HistoryContainer> createState() => _HistoryContainerState();
 }
 
-class _HistoryContainerState extends State<HistoryContainer> {
+class _HistoryContainerState extends ConsumerState<HistoryContainer> {
   @override
   void initState() {
     super.initState();
-    final historyProvider = Provider.of<HistoryProvider>(context, listen: false);
+    final historyProvider = ref.read(historyNotifierProvider.notifier);
     historyProvider.loadHistory().then((_) {
       historyProvider.initializeTimer();
     });
   }
   @override
   Widget build(BuildContext context) {
-    return Consumer<HistoryProvider>(
-      builder: (context, historyProvider, child) {
-        if (historyProvider.historyItems.isEmpty) {
-          return Center(child: Text('No history yet.', style: Theme.of(context).textTheme.headlineSmall));
-        }
-        return ListView.separated(
-          itemCount: historyProvider.historyItems.length,
+    final historyItems = ref.watch(historyNotifierProvider);
+    return historyItems.isEmpty
+      ? Center(child: Text('No history yet.', style: Theme.of(context).textTheme.headlineSmall))
+      : ListView.separated(
+          itemCount: historyItems.length,
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           separatorBuilder: (context, index) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
-            final item = historyProvider.historyItems[index];
+            final item = historyItems[index];
             return HistoryItemWidget(item: item);
           },
         );
-      },
-    );
   }
 }
 
-class HistoryItemWidget extends StatelessWidget {
+class HistoryItemWidget extends ConsumerWidget {
   final HistoryItem item;
 
   const HistoryItemWidget({super.key, required this.item});
 
   @override
-  Widget build(BuildContext context) {
-    final historyProvider = Provider.of<HistoryProvider>(context, listen: true);
-
+  Widget build(BuildContext context, WidgetRef ref) {
     // Calculate the time left for this specific item.
     final expiryTime = DateTime.parse(item.createdAt).add(const Duration(hours: 24));
-    final timeLeft = expiryTime.difference(DateTime.now());
+    final timeLeft = expiryTime.difference(DateTime.now()); 
 
     debugPrint('Is live: ${item.type}');
 
@@ -65,8 +59,7 @@ class HistoryItemWidget extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        final viewProvider = context.read<ViewProvider>();
-        viewProvider.fetchData(context, item.code);
+        ref.watch(viewProvider.notifier).fetchData(item.code);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
@@ -108,7 +101,7 @@ class HistoryItemWidget extends StatelessWidget {
             )
             else
             Text(
-              historyProvider.formatDuration(timeLeft),
+              ref.watch(historyNotifierProvider.notifier).formatDuration(timeLeft),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
             ),
           ],

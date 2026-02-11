@@ -40,7 +40,7 @@ class _DownloadFileState extends State<DownloadFile> {
         builder: (context, downloadProvider, child) {
       return GestureDetector(
         onTap: () async {
-          downloadProvider.downloadFile(context, index, isDownloadingList, widget.url, widget.fileName);
+          downloadProvider.downloadFile(index, isDownloadingList, widget.url, widget.fileName);
         },
         child: isDownloadingList[index]
             ? const SizedBox(

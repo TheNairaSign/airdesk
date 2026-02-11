@@ -3,22 +3,25 @@ import 'package:air_desk/pages/main_page/my_desk/widgets/desk_valid_container.da
 import 'package:air_desk/pages/main_page/widgets/send_button.dart';
 import 'package:air_desk/pages/main_page/widgets/status_switch.dart';
 import 'package:air_desk/pages/main_page/widgets/view_field.dart';
+import 'package:air_desk/providers/receive_file_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
+import 'package:air_desk/repositories/receive_file_repository.dart';
 import 'package:air_desk/utils/global_colours.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/view_provider.dart';
 
-class ViewContainer extends StatefulWidget {
+class ViewContainer extends ConsumerStatefulWidget {
   const ViewContainer({super.key});
 
   @override
-  State<ViewContainer> createState() => _ViewContainerState();
+  ConsumerState<ViewContainer> createState() => _ViewContainerState();
 }
 
-class _ViewContainerState extends State<ViewContainer> {
+class _ViewContainerState extends ConsumerState<ViewContainer> {
   final String text = "Input Content to share or [desk code] to view";
 
   final FocusNode _focusNode = FocusNode();
@@ -26,7 +29,11 @@ class _ViewContainerState extends State<ViewContainer> {
   @override
   void initState() {
     super.initState();
-    Provider.of<ViewProvider>(context, listen: false).initialText(context);
+    final viewNotifier = ref.read(viewProvider.notifier);
+    final receiveFile = ref.read(receiveFileProvider);
+    final shareController = ref.read(shareControllerProvider);
+
+    viewNotifier.initialText(shareText: shareController.text, viewText: receiveFile.sharedText ?? '');
   }
 
   @override
@@ -40,8 +47,10 @@ class _ViewContainerState extends State<ViewContainer> {
 
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    final shareProvider = Provider.of<ShareProvider>(context);
-    final controller = shareProvider.shareController;
+    final shareNotifier = ref.watch(shareProvider.notifier);
+    final controller = ref.watch(shareControllerProvider);
+    final changeControllerState = ref.watch(viewProvider).changeControllerState;
+    final sendController = ref.watch(shareControllerProvider);
 
     final scrollController = ScrollController();
 
@@ -51,9 +60,7 @@ class _ViewContainerState extends State<ViewContainer> {
         debugPrint("Container tapped — focusing textfield.");
       },
       behavior: HitTestBehavior.translucent,
-      child: Consumer<ViewProvider>(
-        builder: (context, viewProvider, child) {
-          return Stack(
+      child: Stack(
             clipBehavior: Clip.none,
             children: [
               AnimatedContainer(
@@ -85,8 +92,8 @@ class _ViewContainerState extends State<ViewContainer> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (viewProvider.changeControllerState)
-                          DeskValidContainer(deskName: viewProvider.sendCodeController.text)
+                        if (changeControllerState)
+                          DeskValidContainer(deskName: sendController.text)
                         else 
                           const StatusSwitch(),
                         
@@ -145,8 +152,8 @@ class _ViewContainerState extends State<ViewContainer> {
                               filled: true,
                               isDense: true,
                               fillColor: Colors.transparent,
-                              hintText: viewProvider.changeControllerState 
-                                ? "Share contents to ${viewProvider.sendCodeController.text}" 
+                              hintText: changeControllerState 
+                                ? "Share contents to ${sendController.text}" 
                                 : "Type or paste content to share...",
                               hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                 color: isDarkMode ? Colors.grey[600] : Colors.grey[700],
@@ -168,9 +175,7 @@ class _ViewContainerState extends State<ViewContainer> {
               ),
               const SendButton(),
             ],
-          );
-        }
-      ),
+          )
     );
   }
 }

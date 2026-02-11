@@ -9,21 +9,21 @@ import 'package:air_desk/utils/global_colours.dart';
 import 'package:air_desk/widgets/edit_code_container.dart';
 import 'package:blurbackground/blurbackground.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../model/submission.dart';
 import '../../../utils/upgrade_popup.dart';
 
-class MyDeskCreatorPage extends StatefulWidget {
+class MyDeskCreatorPage extends ConsumerStatefulWidget {
   const MyDeskCreatorPage({super.key});
 
   @override
-  State<MyDeskCreatorPage> createState() => _MyDeskCreatorPageState();
+  ConsumerState<MyDeskCreatorPage> createState() => _MyDeskCreatorPageState();
 }
 
-class _MyDeskCreatorPageState extends State<MyDeskCreatorPage> with SingleTickerProviderStateMixin {
+class _MyDeskCreatorPageState extends ConsumerState<MyDeskCreatorPage> with SingleTickerProviderStateMixin {
 
   late Future<MyDeskData?> _creatorDeskDataFuture;
   late TabController _tabController;
@@ -32,10 +32,11 @@ class _MyDeskCreatorPageState extends State<MyDeskCreatorPage> with SingleTicker
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _creatorDeskDataFuture = Provider.of<MyDeskProvider>(context, listen: false).getCreatorDesks(context, load: false);
+    _creatorDeskDataFuture = Future(() => ref.read(myDeskProvider.notifier).getCreatorDesks(load: false));
   }
   @override
   Widget build(BuildContext context) {
+    final submissions = ref.watch(myDeskProvider).myDeskData?.submissions;
     return Scaffold(
       appBar: AppBar(
         forceMaterialTransparency: true,
@@ -54,7 +55,7 @@ class _MyDeskCreatorPageState extends State<MyDeskCreatorPage> with SingleTicker
               label: Text('Refresh', style:  Theme.of(context).textTheme.bodyMedium?.copyWith(),),
               onPressed: () {
                 setState(() {
-                  _creatorDeskDataFuture = Provider.of<MyDeskProvider>(context, listen: false).getCreatorDesks(context, load: false);
+                  _creatorDeskDataFuture = ref.read(myDeskProvider.notifier).getCreatorDesks(load: false);
                 });
               },
             ),
@@ -77,11 +78,7 @@ class _MyDeskCreatorPageState extends State<MyDeskCreatorPage> with SingleTicker
             labelStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
             labelColor: GlobalColours(context).buttonColor,
             tabs: [
-              Consumer<MyDeskProvider>(
-                builder: (context, deskProvider, child) {
-                  return Text('Submissions (${deskProvider.myDeskData?.submissions?.length ?? 0})');
-                }
-              ),
+              Text('Submissions (${submissions?.length ?? 0})'),
               const Text('Details'),
             ]),
       ),
@@ -149,7 +146,7 @@ class _MyDeskCreatorPageState extends State<MyDeskCreatorPage> with SingleTicker
 
                 void onRefresh() {
                   setState(() {
-                    _creatorDeskDataFuture = Provider.of<MyDeskProvider>(context, listen: false).getCreatorDesks(context, load: false);
+                    _creatorDeskDataFuture = ref.read(myDeskProvider.notifier).getCreatorDesks(load: false);
                   });
                 }
 

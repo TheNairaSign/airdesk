@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:provider/provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'dart:io';
 
-class QrScanner extends StatefulWidget {
+class QrScanner extends ConsumerStatefulWidget {
   const QrScanner({super.key});
 
   @override
-  State<QrScanner> createState() => _QrScannerState();
+  ConsumerState<QrScanner> createState() => _QrScannerState();
 }
 
-class _QrScannerState extends State<QrScanner> {
+class _QrScannerState extends ConsumerState<QrScanner> {
   MobileScannerController controller = MobileScannerController();
   Barcode? result;
 
@@ -26,7 +26,6 @@ class _QrScannerState extends State<QrScanner> {
               controller: controller,
               onDetect: (capture) {
                 final List<Barcode> barcodes = capture.barcodes;
-                final apiProv = context.read<ViewProvider>();
                 
                 for (final barcode in barcodes) {
                   setState(() {
@@ -43,7 +42,7 @@ class _QrScannerState extends State<QrScanner> {
                           : '';
                       debugPrint(res.toString());
                       debugPrint(lastSegment);
-                      apiProv.fetchData(context, lastSegment);
+                      ref.read(viewProvider.notifier).fetchData(lastSegment);
                     }
                   }
                 }

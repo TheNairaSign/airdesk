@@ -1,23 +1,23 @@
 import 'package:air_desk/utils/global_colours.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/history_provider.dart';
 // import '../../widgets/airdesk_and_logo.dart';
 import 'widgets/history_container.dart';
 
-class HistoryPage extends StatefulWidget {
+class HistoryPage extends ConsumerStatefulWidget {
   const HistoryPage({super.key});
 
   @override
-  State<HistoryPage> createState() => _HistoryPageState();
+  ConsumerState<HistoryPage> createState() => _HistoryPageState();
 }
 
-class _HistoryPageState extends State<HistoryPage> {
+class _HistoryPageState extends ConsumerState<HistoryPage> {
 
   @override
   void initState() {
-    final historyProvider = context.read<HistoryProvider>();
+    final historyProvider = ref.read(historyNotifierProvider.notifier);
     debugPrint("Loading history items");
     historyProvider.loadHistory();
     debugPrint("Getting history items");
@@ -26,13 +26,12 @@ class _HistoryPageState extends State<HistoryPage> {
   }
   @override
   Widget build(BuildContext context) {
-    return Consumer<HistoryProvider>(
-      builder: (context, historyProvider, child) {
-        return RefreshIndicator(
+    final historyItems = ref.watch(historyNotifierProvider);
+    return RefreshIndicator(
           color: GlobalColours(context).buttonColor,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           onRefresh: () async {
-            historyProvider..loadHistory()..getHistoryItems();
+            ref.read(historyNotifierProvider.notifier)..loadHistory()..getHistoryItems();
           },
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -47,13 +46,11 @@ class _HistoryPageState extends State<HistoryPage> {
               //   ],
               // ),
               // const SizedBox(height: 20),
-              historyProvider.historyItems.isNotEmpty
+              historyItems.isNotEmpty
               ? const HistoryContainer()
               : Center(child: Text("No share history", style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 25, color: Theme.of(context).textTheme.bodyLarge?.color))),
             ],
           ),
         );
-      }
-    );
   }
 }

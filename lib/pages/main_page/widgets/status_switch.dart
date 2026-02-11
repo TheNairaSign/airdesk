@@ -3,16 +3,16 @@
 import 'package:air_desk/constants.dart';
 import 'package:air_desk/providers/share_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class StatusSwitch extends StatefulWidget {
+class StatusSwitch extends ConsumerStatefulWidget {
   const StatusSwitch({super.key});
 
   @override
-  State<StatusSwitch> createState() => _StatusSwitchState();
+  ConsumerState<StatusSwitch> createState() => _StatusSwitchState();
 }
 
-class _StatusSwitchState extends State<StatusSwitch> {
+class _StatusSwitchState extends ConsumerState<StatusSwitch> {
 
   bool value = false;
 
@@ -20,7 +20,7 @@ class _StatusSwitchState extends State<StatusSwitch> {
   void toggleSwitch() {
     setState(() {
       value = !value;
-      Provider.of<ShareProvider>(context, listen: false).setIsLive(value);
+      ref.read(shareProvider.notifier).setIsLive(value);
     });
   }
   @override

@@ -6,17 +6,17 @@ import 'package:air_desk/utils/capture.dart';
 import 'package:air_desk/utils/global_colours.dart';
 import 'package:air_desk/utils/snack_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class MyDeskCreatedPage extends StatefulWidget {
+class MyDeskCreatedPage extends ConsumerStatefulWidget {
   const MyDeskCreatedPage({super.key});
 
   @override
-  State<MyDeskCreatedPage> createState() => _MyDeskCreatedPageState();
+  ConsumerState<MyDeskCreatedPage> createState() => _MyDeskCreatedPageState();
 }
 
-class _MyDeskCreatedPageState extends State<MyDeskCreatedPage> {
+class _MyDeskCreatedPageState extends ConsumerState<MyDeskCreatedPage> {
   final GlobalKey _boundaryKey = GlobalKey();
 
   bool _isSavedTapped = false;
@@ -24,6 +24,7 @@ class _MyDeskCreatedPageState extends State<MyDeskCreatedPage> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final myDesk = ref.read(myDeskProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -37,9 +38,7 @@ class _MyDeskCreatedPageState extends State<MyDeskCreatedPage> {
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-        child: Consumer<MyDeskProvider>(
-          builder: (context, myDeskProvider, child) {
-            return Center(
+        child: Center(
               child: Column(
                 children: [
                   const SizedBox(height: 20),
@@ -114,14 +113,14 @@ class _MyDeskCreatedPageState extends State<MyDeskCreatedPage> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      myDeskProvider.public ?? 'public',
+                                      myDesk.publicCode ?? 'public',
                                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                         fontWeight: FontWeight.bold,
                                         // fontFamily: 'Courier',
                                         letterSpacing: 1,
                                       ),
                                     ),
-                                    Copy(textToCopy: myDeskProvider.public ?? 'public'),
+                                    Copy(textToCopy: myDesk.publicCode ?? 'public'),
                                   ],
                                 ),
                               ),
@@ -142,7 +141,7 @@ class _MyDeskCreatedPageState extends State<MyDeskCreatedPage> {
                                   ),
                                   child: QrImageView(
                                     backgroundColor: Colors.white,
-                                    data: '@${myDeskProvider.public}',
+                                    data: '@${myDesk.publicCode ?? 'public'}',
                                     version: 3,
                                     size: 200.0,
                                   ),
@@ -202,14 +201,14 @@ class _MyDeskCreatedPageState extends State<MyDeskCreatedPage> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        myDeskProvider.admin ?? 'admin',
+                                        myDesk.adminCode ?? 'admin',
                                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                           fontWeight: FontWeight.bold,
                                           // fontFamily: 'Courier',
                                           letterSpacing: 1,
                                         ),
                                       ),
-                                      Copy(textToCopy: myDeskProvider.admin ?? 'admin'),
+                                      Copy(textToCopy: myDesk.adminCode ?? 'admin'),
                                     ],
                                   ),
                                 ),
@@ -246,7 +245,7 @@ class _MyDeskCreatedPageState extends State<MyDeskCreatedPage> {
                                   elevation: 0,
                                 ),
                                 onPressed: () {
-                                  showAccessDialog(context, code: myDeskProvider.admin);
+                                  showAccessDialog(context, code: myDesk.adminCode ?? 'admin');
                                 },
                                 icon: const Icon(Icons.login_rounded),
                                 label: Text("Access Desk", style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
@@ -295,9 +294,7 @@ class _MyDeskCreatedPageState extends State<MyDeskCreatedPage> {
                   ),
                 ],
               ),
-            );
-          }
-        ),
+            )
       ),
     );
   }

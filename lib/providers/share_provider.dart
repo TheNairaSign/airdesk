@@ -1,503 +1,279 @@
-import 'dart:convert';
-
-import 'package:air_desk/model/image_data.dart';
-import 'package:air_desk/services/desk_cache_service.dart';
 import 'dart:io';
-
-import 'package:air_desk/constants.dart';
-import 'package:air_desk/providers/my_desk_provider.dart';
-import 'package:air_desk/providers/receive_file_provider.dart';
-import 'package:air_desk/providers/view_provider.dart';
-import 'package:air_desk/utils/global_colours.dart';
-import 'package:air_desk/utils/success_dialog.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sharing_intent/model/sharing_file.dart';
-import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../model/history_model.dart';
-import '../pages/qr_display_page.dart';
+import '../model/image_data.dart';
+import '../repositories/share_repository.dart';
+import '../services/desk_cache_service.dart';
 import 'history_provider.dart';
+import 'receive_file_provider.dart';
+import 'view_provider.dart';
+
+
+final shareRepositoryProvider = Provider<ShareRepository>((ref) => ShareRepository());
+final shareControllerProvider = Provider.autoDispose<TextEditingController>((ref) {
+  final controller = TextEditingController();
+  ref.onDispose(controller.dispose);
+  return controller;
+});
 
 class EditFile {
   final String url;
   final String originalName;
   EditFile({required this.url, required this.originalName});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EditFile &&
+          runtimeType == other.runtimeType &&
+          url == other.url &&
+          originalName == other.originalName;
+
+  @override
+  int get hashCode => url.hashCode ^ originalName.hashCode;
 }
 
-class ShareProvider extends ChangeNotifier {
-  void removeEditFileByPath(String url) {
-    final removeIndex = _file.indexWhere((f) {
-      // if (f.url.startsWith('http')) {
-      debugPrint('Checking URL: ${f.path}');
-      debugPrint('Against: $url');
-      return f.path == url;
-      // }
-      // return f.url == url;
-    });
-    if (removeIndex >= 0) {
-      _file.removeAt(removeIndex);
-      notifyListeners();
-    }
-    debugPrint('Removed file at index: $removeIndex');
+class ShareState {
+  final bool isLoading;
+  final List<File> files;
+  final bool isLive;
+  final List<EditFile> editFiles;
+  final List<EditFile> initialEditFiles;
+  final String? editAdminCode;
+  final bool isEdit;
+
+  const ShareState({
+    this.isLoading = false,
+    this.files = const [],
+    this.isLive = false,
+    this.editFiles = const [],
+    this.initialEditFiles = const [],
+    this.editAdminCode,
+    this.isEdit = false,
+  });
+
+  ShareState copyWith({
+    bool? isLoading,
+    List<File>? files,
+    bool? isLive,
+    List<EditFile>? editFiles,
+    List<EditFile>? initialEditFiles,
+    String? editAdminCode,
+    bool? isEdit,
+    bool forceEditAdminCode = false,
+  }) {
+    return ShareState(
+      isLoading: isLoading ?? this.isLoading,
+      files: files ?? this.files,
+      isLive: isLive ?? this.isLive,
+      editFiles: editFiles ?? this.editFiles,
+      initialEditFiles: initialEditFiles ?? this.initialEditFiles,
+      editAdminCode: forceEditAdminCode ? editAdminCode : (editAdminCode ?? this.editAdminCode),
+      isEdit: isEdit ?? this.isEdit,
+    );
   }
+}
 
-  bool _isLoading = false;
+class ShareNotifier extends StateNotifier<ShareState> {
+  final Ref ref;
+  ShareNotifier(this.ref) : super(const ShareState());
 
-  bool get isLoading => _isLoading;
+  ShareRepository get _shareRepo => ref.read(shareRepositoryProvider);
 
-  final _shareController = TextEditingController();
-  TextEditingController get shareController => _shareController;
-
-  final List<File> _file = [];
-  List<File> get file => _file;
-
-  bool _isLive = false;
-  bool get isLive => _isLive;
+  void removeEditFileByPath(String url) {
+    final newFiles = state.files.where((f) => f.path != url).toList();
+    state = state.copyWith(files: newFiles);
+  }
 
   void setIsLive(bool value) {
-    _isLive = value;
-    debugPrint('Is Live: $_isLive');
-    notifyListeners();
+    state = state.copyWith(isLive: value);
   }
 
-  final List<EditFile> _editFiles = [];
-  List<EditFile> get editFiles => _editFiles;
-
-  List<EditFile> _initialEditFiles = [];
-
-  
-  final String _editText = '';
-  String get editText => _editText;
-
-  String? _editAdminCode;
-  String? get editAdminCode => _editAdminCode;
-
-  bool _isEdit = false;
-  bool get isEdit => _isEdit;
-
   void resetEdit() {
-    _isEdit = false;
-    notifyListeners();
+    state = state.copyWith(isEdit: false);
   }
 
   bool isNetworkFile(String filePath) {
     return filePath.startsWith('http') || filePath.startsWith('https');
   }
 
-  void getEditFiles(BuildContext context, String editCode) async {
-    final url = '$baseUrl/edit/$editCode';
-
+  Future<void> getEditFiles(String editCode) async {
+    state = state.copyWith(isLoading: true);
     try {
-      final response = await http.get(Uri.parse(url));
+      final editData = await _shareRepo.getEditFiles(editCode);
+      
+      final initialEditFiles = (editData['images'] as List)
+          .map((img) =>
+              EditFile(url: img['url'], originalName: img['originalName']))
+          .toList();
 
-      final responseBody = jsonDecode(response.body);
-
-      debugPrint('Edit response body: $responseBody');
-      debugPrint('Edit code: $editCode');
-      if (response.statusCode == 200) {
-        _isEdit = true;
-        notifyListeners();
-
-        debugPrint('Edit files gotten successfully');
-        final editData = responseBody['data'];
-        _initialEditFiles = (editData['images'] as List).map((img) => EditFile(url: img['url'], originalName: img['originalName'])).toList();
-        _shareController.text = editData['text'];
-        _editAdminCode = editData['editCode'];
-        final newFiles = (editData['images'] as List).map((img) => ImageData.fromJson(img)).toList();
-        debugPrint('Edit files before: $editFiles');
-        _file.clear();
-        final Set<String> seenNames = {};
-        debugPrint('New files is list');
-        for (var fileData in newFiles) {
-          final filePath = fileData.url;
-          debugPrint('File path: $filePath');
-          final originalName = fileData.originalName;
-          if (filePath != null && originalName != null) {
-            if (!seenNames.contains(originalName)) {
-              seenNames.add(originalName);
-              final path = filePath.startsWith('http') ? filePath : filePath.replaceAll('file://', '');
-              debugPrint('Adding file: $path with original name: $originalName');
-              _editFiles.add(EditFile(url: fileData.url!, originalName: originalName));
-              notifyListeners();
-            } else {
-              debugPrint('Duplicate file skipped by name: $originalName');
-            }
-            debugPrint('Edit files after: ${fileData.url}');
+      final newFiles = (editData['images'] as List)
+          .map((img) => ImageData.fromJson(img))
+          .toList();
+      
+      final Set<String> seenNames = {};
+      final List<EditFile> editFiles = [];
+      for (var fileData in newFiles) {
+        final filePath = fileData.url;
+        final originalName = fileData.originalName;
+        if (filePath != null && originalName != null) {
+          if (!seenNames.contains(originalName)) {
+            seenNames.add(originalName);
+            editFiles.add(EditFile(url: fileData.url!, originalName: originalName));
           }
         }
-        debugPrint('<--------------->');
-        debugPrint('Files after: $_file');
-        _editAdminCode = editData['editCode'];
-        notifyListeners();
-      } else {
-        debugPrint('Desk has expired and cannot be edited');
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Invalid'),
-            content: const Text('Desk has expired and cannot be found.'),
-            actions: [
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: GlobalColours.errorColor.withValues(alpha: .1),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-                ),
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('OK', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: GlobalColours.errorColor)),
-              ),
-            ],
-          ),
-        );
-        final viewProvider = Provider.of<ViewProvider>(context, listen: false);
-        viewProvider.sendCodeController.clear();
       }
+
+      ref.read(shareControllerProvider).text = editData['text'];
+
+      state = state.copyWith(
+        isEdit: true,
+        initialEditFiles: initialEditFiles,
+        editFiles: editFiles,
+        editAdminCode: editData['editCode'],
+        files: [],
+      );
     } catch (error) {
-      _isEdit = false;
-      notifyListeners();
-      debugPrint('An Error Occurred when getting edit for desk: $error');
+      state = state.copyWith(isEdit: false);
+      rethrow;
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
   void onRemove(int index, List<SharedFile> sharedFiles) {
-    if (index < _file.length) {
-      // Remove from local files
-      _file.removeAt(index);
-    } else if (index < _file.length + _editFiles.length) {
-      // Remove from edit files
-      int editIndex = index - _file.length;
-      _editFiles.removeAt(editIndex);
+    if (index < state.files.length) {
+      final newFiles = List<File>.from(state.files)..removeAt(index);
+      state = state.copyWith(files: newFiles);
+    } else if (index < state.files.length + state.editFiles.length) {
+      int editIndex = index - state.files.length;
+      final newEditFiles = List<EditFile>.from(state.editFiles)..removeAt(editIndex);
+      state = state.copyWith(editFiles: newEditFiles);
     } else {
-      // Remove from shared files
-      int sharedIndex = index - _file.length - _editFiles.length;
-      sharedFiles.removeAt(sharedIndex);
+      int sharedIndex = index - state.files.length - state.editFiles.length;
+      ref.read(receiveFileProvider.notifier).removeSharedFile(sharedIndex);
     }
-    notifyListeners();
   }
 
-  // Returns a list of EditFile objects that were newly added and not present in the initial files
-  // by comparing URLs between current _editFiles and _initialEditFiles
   List<EditFile> getEditedFiles() {
-    // Create a Set of URLs from initial files for efficient lookup
-    final editPaths = _editFiles.map((e) => e.url).toSet();
-
-    final removed = _initialEditFiles.where((f) => !editPaths.contains(f.url)).toList();
-    debugPrint('Removed Files: $removed with length: ${removed.length}');
-
-    return removed;
+    final editPaths = state.editFiles.map((e) => e.url).toSet();
+    return state.initialEditFiles.where((f) => !editPaths.contains(f.url)).toList();
   }
 
-  Future<void> updateEdit(BuildContext context) async {
-    _isLoading = true;
-    notifyListeners();
-
-    final viewProvider = Provider.of<ViewProvider>(context, listen: false);
-
-    debugPrint('Update Edit code: $_editAdminCode');
-
-    final uri = Uri.parse('$baseUrl/edit/$_editAdminCode');
-
-    var request = http.MultipartRequest('PUT', uri);
-
-    request.fields['content'] = _shareController.text;
-
-    final List<String> removedFiles = [];
-
-    for (var editedFiles in getEditedFiles()) {
-      final lastSegment = Uri.parse(editedFiles.url).pathSegments.last;
-      removedFiles.add(lastSegment);
-      debugPrint('$removedFiles');
-    }
-
-    request.fields['imagesToRemove'] = json.encode(removedFiles);
-
-    for (var file in _file) {
-      debugPrint("Adding local file");
-      request.files.add(await http.MultipartFile.fromPath('files', file.path));
-      debugPrint("File path: ${file.path}");
-    }
+  Future<void> updateEdit() async {
+    state = state.copyWith(isLoading: true);
+    final removedFiles = getEditedFiles().map((e) => Uri.parse(e.url).pathSegments.last).toList();
 
     try {
-      debugPrint("Request fields: ${request.fields}");
-      debugPrint("Total files to upload: ${request.files.length}");
-
-      // Send the request and get the response
-      var response = await request.send();
-      _isLoading = false;
-      notifyListeners();
-      debugPrint("Response status code: ${response.statusCode}");
-      debugPrint("Request Response: ${response.request}");
-      if (response.statusCode == 200) {
-        debugPrint('Edit updated successfully');
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Success'),
-            content: const Text('Edit updated successfully.'),
-            actions: [
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: GlobalColours.secondaryGreen.withValues(alpha: .1),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-                ),
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('OK', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: GlobalColours(context).textColorForContainer)),
-              ),
-            ],
-          ),
-        );
-        viewProvider.sendCodeController.clear();
-        _editAdminCode = '';
-        _isEdit = false;
-        _initialEditFiles.clear();
-        _editFiles.clear();
-        _shareController.clear();
-        _file.clear();
-        notifyListeners();
-      }
+      await _shareRepo.updateEdit(
+        editAdminCode: state.editAdminCode!,
+        content: ref.read(shareControllerProvider).text,
+        imagesToRemove: removedFiles,
+        newFiles: state.files,
+      );
+      
+      ref.read(shareControllerProvider).clear();
+      state = state.copyWith(
+        editAdminCode: '',
+        isEdit: false,
+        initialEditFiles: [],
+        editFiles: [],
+        files: [],
+        forceEditAdminCode: true,
+      );
     } catch (error) {
-      _isLoading = false;
-      notifyListeners();
-      debugPrint('Update Edit failed: $error');
+      rethrow;
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
+  void submit() {
+    final viewNotifier = ref.read(viewProvider.notifier);
+    final viewState = ref.read(viewProvider);
+    final sendCodeController = ref.read(sendCodeControllerProvider);
+    final shareController = ref.read(shareControllerProvider);
+    final receiveFileNotifier = ref.read(receiveFileProvider);
 
-  void submit(BuildContext context) {
-    final viewProvider = Provider.of<ViewProvider>(context, listen: false);
-    final deskName = viewProvider.sendCodeController.text.trim();
-    final sendToDesk = viewProvider.changeControllerState;
-    final isEdit = viewProvider.isEdit;
-    
-    final viewText = viewProvider.sendCodeController.text;
-    
-    final isView = _shareController.text.isEmpty && (viewText.isNotEmpty && !viewText.startsWith('@') && viewText.length == 6);
+    final deskName = sendCodeController.text.trim();
+    final sendToDesk = viewState.changeControllerState;
+    final isEdit = viewNotifier.isEdit;
+    final viewText = sendCodeController.text;
+    final isView = shareController.text.isEmpty && (viewText.isNotEmpty && !viewText.startsWith('@') && viewText.length == 6);
 
     if (sendToDesk) {
-      submitToDesk(context, deskName);
+      submitToDesk(deskName);
     } else if (isEdit) {
-      updateEdit(context);
+      updateEdit();
     } else if (isView) {
-      viewProvider.sendCodeController.clear();
-      viewProvider.fetchData(context, viewText);
+      sendCodeController.clear();
+      viewNotifier.fetchData(viewText);
     } else {
-      postData(context, context.read<ReceiveFileProvider>().sharedFiles);
+      postData(receiveFileNotifier.sharedFiles);
     }
   }
 
-  void submitToDesk(BuildContext context, String deskName) async {
-    _isLoading = true;
-    notifyListeners();
-    final deskExists = Provider.of<MyDeskProvider>(context, listen: false).deskExists;
-
-    if (deskExists == false) {
-      // showDialog(
-      //     context: context,
-      //     builder: (context) => AlertDialog(
-      //       title: const Text('Invalid myDesk'),
-      //       content: Text('User with MyDesk: $deskName does not exist.'),
-      //       actions: [
-      //         TextButton(
-      //           style: TextButton.styleFrom(
-      //             backgroundColor: GlobalColours.secondaryGreen.withOpacity(.1),
-      //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-      //           ),
-      //           onPressed: () => Navigator.of(context).pop(),
-      //           child: Text('OK', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: GlobalColours(context).textColorForContainer)),
-      //         ),
-      //       ],
-      //     ),
-      //   );
-      return;
-    }
-
-    final viewProvider = Provider.of<ViewProvider>(context, listen: false);
-    final controller = viewProvider.sendCodeController;
-
-
-    final originalDeskName = deskName;
-    deskName = deskName.replaceAll('@', '');
-    final url = Uri.parse('https://airdeskserver-production.up.railway.app/api/mydesk/submit/$deskName');
-
-    var request = http.MultipartRequest('POST', url);
-    request.fields['content'] = _shareController.text;
-
-    for (var file in _file) {
-      debugPrint("Adding local file");
-      request.files.add(await http.MultipartFile.fromPath('files', file.path));
-      debugPrint("File path: ${file.path}");
-    }
-
+  Future<void> submitToDesk(String deskName) async {
+    state = state.copyWith(isLoading: true);
     try {
-      var response = await request.send();
-
-      _isLoading = false;
-      notifyListeners();
-
-      debugPrint("Response status code: ${request.fields} with deskname: $deskName");
-      debugPrint("Request Response: ${response.request}, with message "); 
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // Cache the desk code on success
-        await DeskCacheService().cacheDeskCode(originalDeskName);
-        debugPrint('Successfully cached desk code: $originalDeskName');
-
-        showSuccessDialog(
-          context, 
-          deskName: deskName, 
-          fileNames: file.map((f) => f.path).toList(), 
-          content: _shareController.text,
-          onPop: () {
-            Navigator.of(context).pop();
-            _shareController.clear();
-            viewProvider.resetControllerState();
-            controller.clear();
-            clearFiles(context);
-          }
-        );
-      } else {
-        _isLoading = false;
-        notifyListeners();
-        debugPrint('***************');
-        debugPrint('Error: ${response.statusCode}, Body: ${response.reasonPhrase}');
-        debugPrint('***************');
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid desk name, try again with another desk name'))
-        );
-      }
+      await _shareRepo.submitToDesk(
+        deskName: deskName,
+        content: ref.read(shareControllerProvider).text,
+        files: state.files,
+      );
+      await DeskCacheService().cacheDeskCode(deskName);
+      ref.read(shareControllerProvider).clear();
+      clearFiles();
     } catch (error) {
-      debugPrint('Error Sending edited data: $error');
-      _isLoading = false;
-      notifyListeners();
-      throw Exception('Can\'t edit data because: $error');
+      rethrow;
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
   Future<void> pickFiles() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'pdf', 'jpeg', 'gif', 'png']
-    );
-
-    if (result != null) {
-      final newFiles = result.paths.map((path) => File(path!)).toList();
-      _file.addAll(newFiles);
-    }
-    notifyListeners();
+    final newFiles = await _shareRepo.pickFiles();
+    state = state.copyWith(files: [...state.files, ...newFiles]);
   }
 
-  void clearFiles(BuildContext context) {
-    _file.clear();
-    _editFiles.clear();
-    context.read<ReceiveFileProvider>().sharedFiles.clear();
-    notifyListeners();
+  void clearFiles() {
+    state = state.copyWith(files: [], editFiles: []);
+    ref.read(receiveFileProvider.notifier).clearFiles();
   }
 
-  Future<void> postData(BuildContext context, List<SharedFile> sharedFiles) async {
-    _isLoading = true;
-    notifyListeners();
-
-    final url = Uri.parse("$baseUrl/dynamic");
-
-    // Add text content to the request
-    var request = http.MultipartRequest('POST', url);
-    request.fields['content'] = _shareController.text;
-
-    if (_isLive) {
-      debugPrint('Desk is Live');
-      request.fields['deskType'] = 'live';
-    }
-
-    // Handle locally picked files
-    for (var file in _file) {
-      debugPrint("Adding local file");
-      request.files.add(await http.MultipartFile.fromPath('files', file.path));
-      debugPrint("File path: ${file.path}");
-    }
-
-    // Handle shared files
-    for (var sharedFile in sharedFiles) {
-      debugPrint("Adding shared file");
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'files',
-          sharedFile.value!,
-        ),
-      );
-      debugPrint("Shared file path: ${sharedFile.value}");
-    }
-
+  Future<Map<String, dynamic>> postData(List<SharedFile> sharedFiles) async {
+    state = state.copyWith(isLoading: true);
     try {
-      debugPrint('***************');
-      debugPrint("Request fields: ${request.fields}");
-      debugPrint("Total files to upload: ${request.files.length}");
-      debugPrint('***************');
+      final responseData = await _shareRepo.postData(
+        content: ref.read(shareControllerProvider).text,
+        isLive: state.isLive,
+        localFiles: state.files,
+        sharedFilePaths: sharedFiles.map((e) => e.value ?? "").toList(),
+      );
 
-      // Send the request and get the response
-      var response = await request.send();
-      _isLoading = false;
-      notifyListeners();
-      debugPrint("Response status code: ${response.statusCode}");
-      debugPrint("Request Response: ${response.reasonPhrase}");
-
-      if (response.statusCode == 200) {
-        var responseBody = await response.stream.bytesToString();
-        final responseData = jsonDecode(responseBody);
-        debugPrint("Status: $responseBody");
-
-        final generatedCode = responseData["data"]["code"];
-        final editCode = responseData["data"]["editCode"];
-
-        debugPrint("Share response: $responseData");
-
-        addNewHistoryItem(context, generatedCode, responseData);
-
-        // Navigate to the QRDisplayPage with the generated code
-        if (context.mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => QRDisplayPage(
-                data: "http://www.airdesk.me/view/$generatedCode",
-                code: generatedCode,
-                editCode: editCode,
-              ),
-            ),
-          );
-        }
-        clearFiles(context);
-        _isLoading = false;
-        notifyListeners();
-
-        debugPrint('Success: $responseData');
-      } else {
-        _isLoading = false;
-        notifyListeners();
-        debugPrint('++++++++++++');
-        debugPrint('Error: ${response.statusCode}, Body: ${response.reasonPhrase}');
-        debugPrint('++++++++++++');
-      }
+      await addNewHistoryItem(responseData["data"]["code"], responseData);
+      clearFiles();
+      return responseData;
     } catch (e) {
-      _isLoading = false;
-      notifyListeners();
-
-      debugPrint('Network error: $e');
+      debugPrint('Error in postData: $e');
+      return {};
     } finally {
-      _isLoading = false;
-      _shareController.clear();
-      notifyListeners();
+      state = state.copyWith(isLoading: false);
+      ref.read(shareControllerProvider).clear();
     }
   }
 
-  void addNewHistoryItem(BuildContext context, String generatedCode, Map<String, dynamic> responseData) async {
-    debugPrint("Adding new history item");
-    final historyController = context.read<HistoryProvider>();
-    List<HistoryItem>? existingHistory = await historyController.getHistoryItems();
+  Future<void> addNewHistoryItem(
+    String generatedCode,
+    Map<String, dynamic> responseData, 
+  ) async {
+    final historyProvider = ref.read(historyNotifierProvider.notifier);
+    List<HistoryItem> existingHistory = await historyProvider.getHistoryItems();
 
-    // Create a new HistoryItem
-    debugPrint("Adding new item");
     HistoryItem newItem = HistoryItem(
       code: generatedCode,
       id: responseData['data']['_id'],
@@ -506,16 +282,9 @@ class ShareProvider extends ChangeNotifier {
       createdAt: responseData['data']['createdAt'],
     );
 
-    // Append the new item to the existing history
-    if (existingHistory != null) {
-      debugPrint("Existing history not null");
-      existingHistory.add(newItem);
-    } else {
-      debugPrint("New item Added");
-      existingHistory = [newItem];
-    }
-    debugPrint("Saving to updated list");
-    // Save the updated list
-    historyController.saveHistoryItems(existingHistory);
+    existingHistory.add(newItem);
+    await historyProvider.updateHistory(existingHistory);
   }
 }
+
+final shareProvider = StateNotifierProvider.autoDispose<ShareNotifier, ShareState>((ref) => ShareNotifier(ref));

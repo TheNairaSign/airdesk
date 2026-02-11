@@ -19,7 +19,7 @@ class DownloadMultiple extends StatelessWidget {
         return GestureDetector(
           onTap: () {
             if (uris != null && fileType.isImageFile(uris.toString())) {
-                downloadProvider.downloadFiles(context, uris!,);
+                downloadProvider.downloadFiles(uris!,);
             } else {
               snackBar("No image found", context);
             }
