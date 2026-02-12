@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:air_desk/core/failures/failure.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -62,6 +64,7 @@ class ViewNotifier extends StateNotifier<ViewState> {
     ref.read(receiveFileProvider.notifier).removeSharedFile(index);
   }
 
+
   void initialText({required String shareText, required String viewText}) {
     ref.read(viewControllerProvider).text = shareText.isNotEmpty ? shareText : viewText;
   }
@@ -70,29 +73,75 @@ class ViewNotifier extends StateNotifier<ViewState> {
     ref.read(viewControllerProvider).text = value.trim();
   }
 
-  Future<DeskData> fetchData(String deskId) async {
-    state = state.copyWith(isLoading: true);
-    try {
-      final deskData = await _viewRepo.fetchData(deskId);
-      ref.read(sendCodeControllerProvider).clear();
-      final data = deskData.fold((l) => throw l, (r) => r);
-      state = state.copyWith(deskData: data);
-      return data;
-    } catch (e) {
-      rethrow;
-    } finally {
-      state = state.copyWith(isLoading: false);
+  Future<Either<Failure, ViewSubmitResult>> submitView() async {
+    final sendText = ref.read(sendCodeControllerProvider).text;
+    final isMyDeskCode = sendText.startsWith('@') && sendText.substring(1).length >= 6;
+    final isEdit = !sendText.contains('@') && sendText.length == 9;
+    final isRegular = !sendText.startsWith('@') && sendText.length == 6;
+
+    if (isMyDeskCode) {
+      debugPrint('Is my desk code: ${ref.read(sendCodeControllerProvider).text}');
+      final result = await checkDesk(sendText);
+      return result.map((exists) => DeskCheckSuccess(exists ?? false));
+    } else if (isEdit) {
+      final result = await editDesk();
+      return result.map((_) => EditFilesSuccess());
+    } else if (isRegular) {
+      final result = await fetchData(sendText);
+      return result.map((data) => FetchDeskSuccess(data));
+    } else {
+      return Left(Failure("Invalid code format"));
     }
   }
 
-  void editDesk() => ref.read(shareProvider.notifier).getEditFiles(ref.read(sendCodeControllerProvider).text);
+  Future<Either<Failure, DeskData>> fetchData(String deskId) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      final deskData = await _viewRepo.fetchData(deskId);
+      return deskData.fold(
+        (l) => Left(l),
+        (r) {
+          if (mounted) {
+            ref.read(sendCodeControllerProvider).clear();
+            state = state.copyWith(deskData: r);
+          }
+          return Right(r);
+        },
+      );
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    } finally {
+      if (mounted) {
+        state = state.copyWith(isLoading: false);
+      }
+    }
+  }
+
+  Future<Either<Failure, Unit>> editDesk() async {
+    state = state.copyWith(isLoading: true);
+    try {
+      await ref.read(shareProvider.notifier).getEditFiles(ref.read(sendCodeControllerProvider).text);
+       return const Right(unit);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    } finally {
+      if (mounted) {
+        state = state.copyWith(isLoading: false);
+      }
+    }
+  } 
 
   void resetControllerState() {
     state = state.copyWith(changeControllerState: false);
   }
 
-  void checkDesk(String deskId) {
-    ref.read(myDeskProvider.notifier).checkDesk(deskId);
+  Future<Either<Failure, bool?>> checkDesk(String deskId) async {
+     try {
+      final result = await ref.read(myDeskProvider.notifier).checkDesk(deskId);
+      return Right(result);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
   }
 
   void deskNameListener() {
@@ -102,26 +151,14 @@ class ViewNotifier extends StateNotifier<ViewState> {
 
     if (isMyDeskCode) {
       state = state.copyWith(changeControllerState: true);
-      checkDesk(sendText);
+      // checkDesk(sendText); // Optimistic check can stay if needed but suppressing errors
+       ref.read(myDeskProvider.notifier).checkDesk(sendText);
     } else if (isEdit) {
-      editDesk();
+      // editDesk(); // Don't auto-fetch edits on typing? existing logic seemed to allow it.
+      // But submitView is better for actions.
+      // Keeping state update only for now
     } else {
       state = state.copyWith(changeControllerState: false);
-    }
-  }
-
-  void updateControllerState() {
-    final sendText = ref.read(sendCodeControllerProvider).text;
-    final isMyDeskCode = sendText.startsWith('@') && sendText.substring(1).length >= 6;
-    final isRegular = !sendText.startsWith('@') && sendText.length == 6;
-
-    if (isMyDeskCode) {
-      debugPrint('Is my desk code: ${ref.read(sendCodeControllerProvider).text}');
-      checkDesk(sendText);
-    } else if (isEdit) {
-      editDesk();
-    } else if (isRegular) {
-      fetchData(sendText);
     }
   }
 
@@ -138,6 +175,20 @@ class ViewNotifier extends StateNotifier<ViewState> {
     ref.read(shareControllerProvider).clear();
     shareNotifier.clearFiles();
   }
+}
+
+abstract class ViewSubmitResult {}
+
+class DeskCheckSuccess extends ViewSubmitResult {
+  final bool exists;
+  DeskCheckSuccess(this.exists);
+}
+
+class EditFilesSuccess extends ViewSubmitResult {}
+
+class FetchDeskSuccess extends ViewSubmitResult {
+  final DeskData data;
+  FetchDeskSuccess(this.data);
 }
 
 final viewProvider = StateNotifierProvider.autoDispose<ViewNotifier, ViewState>((ref) {

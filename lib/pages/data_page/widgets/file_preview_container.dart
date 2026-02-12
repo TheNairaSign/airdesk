@@ -10,37 +10,44 @@ class FilePreviewContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     CustomFileType fileType = CustomFileType();
-
-    Widget content = fileType.isImageFile(url)
-        ? Container(
-          width: 96,
-          height: 96,
-          decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(10))),
-          child: CachedNetworkImage(
-              imageUrl: url,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => const Padding(
-                padding: EdgeInsets.all(15.0),
-                child: CircularProgressIndicator(color: codeColor),
-              ),
-              errorWidget: (context, url, error) => const Icon(Icons.picture_as_pdf),
-            ),
-        )
-        : Container(
-            color: Colors.white,
-            child: const Icon(
-              Icons.picture_as_pdf,
-              size: 90,
-              color: Colors.black,
-            ),
-          );
+    final isImage = fileType.isImageFile(url);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      height: 96,
-      width: 96,
+      width: 40,
+      height: 40,
       clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
-      child: content,
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[800] : Colors.grey[200],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: isImage
+          ? CachedNetworkImage(
+              imageUrl: url,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Center(
+                child: SizedBox(
+                  width: 15,
+                  height: 15,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: isDark ? Colors.white70 : codeColor,
+                  ),
+                ),
+              ),
+              errorWidget: (context, url, error) => Icon(
+                Icons.image_not_supported_outlined,
+                size: 20,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            )
+          : Center(
+              child: Icon(
+                Icons.insert_drive_file_outlined, // Generic file icon
+                size: 20,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
     );
-}
+  }
 }

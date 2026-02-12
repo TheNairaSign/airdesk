@@ -1,11 +1,12 @@
 import 'package:air_desk/constants.dart';
+import 'package:air_desk/pages/data_page/qr_data_page.dart';
 import 'package:air_desk/providers/my_desk_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'package:air_desk/services/desk_cache_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart';
+
 
 class ViewField extends ConsumerStatefulWidget {
   const ViewField({super.key});
@@ -99,34 +100,116 @@ class _ViewFieldState extends ConsumerState<ViewField> with SingleTickerProvider
                 enabled: true,
                 border: InputBorder.none
               ),
-              onFieldSubmitted: (value) {
-                onFieldSubmitted();
-                ref.watch(viewProvider.notifier).updateControllerState();
+              onFieldSubmitted: (value) async {
+                final result = await ref.read(viewProvider.notifier).submitView();
+                
+                result.fold(
+                  (failure) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
+                    );
+                  },
+                  (success) {
+                    if (success is DeskCheckSuccess) {
+                      final message = success.exists ? "Desk verified!" : "Desk not found";
+                      final color = success.exists ? Colors.green : Colors.red;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(message), backgroundColor: color),
+                      );
+                    } else if (success is EditFilesSuccess) {
+                       ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Edit mode enabled"), backgroundColor: Colors.green),
+                      );
+                    } else if (success is FetchDeskSuccess) {
+                       // Typically fetchData already navigates or updates state that triggers navigation? 
+                       // The existing logic just called fetchData which updated state. 
+                       // The UI reacting to deskData change might handle navigation? 
+                       // Assuming SendButton handles navigation for regular fetch? 
+                       // Wait, ViewField is also used to VIEW. 
+                       // If FetchDeskSuccess, we might want to navigate to QrDataPage or similar?
+                       // The SendButton logic: 
+                       // result.fold(..., (success) { if (success is FetchDataSuccess) ... Navigator.push... })
+                       // So I should replicate that navigation here if it's the intent.
+                       
+                       // Looking at SendButton.dart (from context):
+                       /*
+                        if (success is FetchDataSuccess) {
+                          Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => QrDataPage(
+                              content: success.data.text,
+                              ...
+                            ),
+                          ));
+                        }
+                       */
+                       // I will duplicate this navigation here.
+                       Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => QrDataPage(
+                            content: success.data.text,
+                            files: success.data.images,
+                            data: success.data.code,
+                            createdAt: success.data.createdAt ?? DateTime.now(),
+                          ),
+                        ));
+                    }
+                  }
+                );
               },
             );
           },
-          optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<String> onSelected, Iterable<String> options) {
+              optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<String> onSelected, Iterable<String> options) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
             return Align(
               alignment: Alignment.topLeft,
               child: Material(
-                elevation: 4.0,
-                child: ConstrainedBox(
+                elevation: 0,
+                color: Colors.transparent,
+                child: Container(
                   constraints: const BoxConstraints(maxHeight: 200, minHeight: 50),
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: options.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final String option = options.elementAt(index);
-                      return InkWell(
-                        onTap: () {
-                          onSelected(option);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text(option),
-                        ),
-                      );
-                    },
+                  margin: const EdgeInsets.only(top: 10),
+                  width: MediaQuery.of(context).size.width * 0.7, // Adjust width as needed since it's an overlay
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xff1e1e1e) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.1),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
+                      width: 1,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: ListView.builder(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: options.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final String option = options.elementAt(index);
+                        return Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => onSelected(option),
+                            hoverColor: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              child: Text(
+                                option,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: isDark ? Colors.white : Colors.black87,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),

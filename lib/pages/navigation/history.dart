@@ -17,40 +17,57 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
 
   @override
   void initState() {
-    final historyProvider = ref.read(historyNotifierProvider.notifier);
-    debugPrint("Loading history items");
-    historyProvider.loadHistory();
-    debugPrint("Getting history items");
-    historyProvider.getHistoryItems();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final historyProvider = ref.read(historyNotifierProvider.notifier);
+      historyProvider.loadHistory();
+      historyProvider.getHistoryItems();
+    });
   }
+
   @override
   Widget build(BuildContext context) {
     final historyItems = ref.watch(historyNotifierProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return RefreshIndicator(
-          color: GlobalColours(context).buttonColor,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          onRefresh: () async {
-            ref.read(historyNotifierProvider.notifier)..loadHistory()..getHistoryItems();
-          },
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              // const AirdeskAndLogo(),
-              const SizedBox(height: 15),
-              // Row(
-              //   children: [
-              //     Text("Share History", style: Theme.of((context)).textTheme.headlineSmall),
-              //     const SizedBox(width: 10),
-              //     Text('(Disappears in 24hrs)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey)),
-              //   ],
-              // ),
-              // const SizedBox(height: 20),
-              historyItems.isNotEmpty
-              ? const HistoryContainer()
-              : Center(child: Text("No share history", style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 25, color: Theme.of(context).textTheme.bodyLarge?.color))),
-            ],
-          ),
-        );
+        color: GlobalColours(context).buttonColor,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        onRefresh: () async {
+          ref.read(historyNotifierProvider.notifier)..loadHistory()..getHistoryItems();
+        },
+        child: historyItems.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.history_toggle_off_outlined,
+                      size: 80,
+                      color: isDark ? Colors.grey[800] : Colors.grey[300],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      "No recent history",
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: isDark ? Colors.grey[600] : Colors.grey[400],
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Your viewed desks will appear here",
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isDark ? Colors.grey[700] : Colors.grey[500],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : const Padding(
+              padding: EdgeInsets.only(top: 20),
+              child: HistoryContainer(),
+            ),
+    );
   }
 }

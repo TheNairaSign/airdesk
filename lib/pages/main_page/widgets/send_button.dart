@@ -1,4 +1,7 @@
+import 'package:air_desk/model/image_data.dart';
+import 'package:air_desk/pages/data_page/qr_data_page.dart';
 import 'package:air_desk/constants.dart';
+import 'package:air_desk/pages/qr_display_page.dart';
 import 'package:air_desk/providers/my_desk_provider.dart';
 import 'package:air_desk/providers/share_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
@@ -41,12 +44,46 @@ class SendButton extends ConsumerWidget {
           || share.editFiles.isNotEmpty
           || (shareController.text.isEmpty && viewText.isNotEmpty && viewText.length == 6)
       ) {
-        ref.read(shareProvider.notifier).submit();
-        // if(shareProvider.isEdit) {
-        //   await shareProvider.updateEdit(context);
-        // } else {
-        //   await shareProvider.postData(context, rp.sharedFiles);
-        // }
+        final result = await ref.read(shareProvider.notifier).submit();
+        
+        result.fold(
+          (failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
+            );
+          },
+          (success) {
+            if (success is FetchDataSuccess) {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => QrDataPage(
+                  content: success.data.text,
+                  files: success.data.images,
+                  data: success.data.code,
+                  createdAt: success.data.createdAt ?? DateTime.now(),
+                ),
+              ));
+            } else if (success is PostDataSuccess) {
+              final data = success.data['data'];
+              final generatedCode = data['code'];
+              final qrData = "http://www.airdesk.me/view/$generatedCode";
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => QRDisplayPage(
+                  data: qrData,
+                  code: generatedCode,
+                  editCode: data['editCode'],
+                ),
+              ));
+            } else if (success is DeskSubmitSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Submitted to desk successfully!"), backgroundColor: Colors.green),
+              );
+            } else if (success is UpdateEditSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Changes saved successfully!"), backgroundColor: Colors.green),
+              );
+            }
+          },
+        );
       }
     },
     child: share.isLoading

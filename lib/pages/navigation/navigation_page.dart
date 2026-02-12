@@ -1,4 +1,5 @@
 import 'package:air_desk/pages/main_page/main_page.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -56,8 +57,8 @@ class _NavigationPageState extends State<NavigationPage> {
         enableFeedback: true,
         onTap: onItemTapped,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: "History"),
+          BottomNavigationBarItem(icon: Icon(EvaIcons.homeOutline), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.history_outlined), label: "History"),
         ],
         ),
     );

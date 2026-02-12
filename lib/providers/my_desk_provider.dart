@@ -187,10 +187,14 @@ class DeskNotifier extends StateNotifier<DeskState> {
       state = state.copyWith(deskExists: result, checkingDesk: false);
       return result;
     } catch (error) {
-      state = state.copyWith(checkingDesk: false);
+      if (mounted) {
+        state = state.copyWith(checkingDesk: false);
+      }
       rethrow;
     } finally {
-      state = state.copyWith(checkingDesk: false);
+      if (mounted) {
+        state = state.copyWith(checkingDesk: false);
+      }
     }
   }
 }

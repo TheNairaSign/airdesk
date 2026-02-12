@@ -1,5 +1,4 @@
 import 'package:air_desk/components/copy.dart';
-import 'package:air_desk/utils/global_colours.dart';
 import 'package:flutter/material.dart';
 
 class EditCodeContainer extends StatelessWidget {
@@ -16,61 +15,85 @@ class EditCodeContainer extends StatelessWidget {
 
     return Center(
       child: Container(
-        padding: const EdgeInsets.all(12),
-        margin: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
+        // margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
-          color: GlobalColours(context).containerColor,
-          borderRadius: BorderRadius.circular(12),
+          color: isDark ? const Color(0xff1e293b).withValues(alpha: 0.5) : Colors.amber.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.amber.withValues(alpha: 0.2),
+            width: 1,
+          ),
+          boxShadow: [
+            if (!isDark)
+              BoxShadow(
+                color: Colors.amber.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+          ],
         ),
-        width: width ?? 320,
+        width: width ?? 340,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Title
-            Text(
-              title ?? "Edit Code (For creators only)",
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.edit_note_rounded, size: 20, color: Colors.orange),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title ?? "Creator's Key",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-
-            // Code display with Copy button
+            const SizedBox(height: 20),
             Container(
-              height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: isDark ? Theme.of(context).scaffoldBackgroundColor : Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
+                color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // The code
                   Text(
                     editCode,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      // letterSpacing: 1.2,
+                      fontSize: 20,
+                      letterSpacing: 2,
                       fontFamily: "monospace",
-                      color: GlobalColours(context).codeTextColor,
+                      color: isDark ? Colors.orange[300] : Colors.orange[800],
                     ),
                   ),
-
-                  // Copy Button
-                  Copy(textToCopy: editCode, textColor: GlobalColours(context).codeTextColor,)
+                  Copy(
+                    textToCopy: editCode, 
+                    textColor: isDark ? Colors.orange[300] : Colors.orange[800],
+                  )
                 ],
               ),
             ),
-            const SizedBox(height: 10),
-
-            // Footer text
+            const SizedBox(height: 16),
             Text(
-              description ?? "Use this code edit your live desk content later",
+              description ?? "Use this code to edit your live desk content later. Keep it private!",
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                height: 1.5,
               ),
             ),
           ],

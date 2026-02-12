@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:air_desk/api/api_config.dart';
+import 'package:air_desk/core/failures/failure.dart';
+import 'package:dartz/dartz.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -20,7 +22,7 @@ class ShareRepository {
     }
   }
 
-  Future<void> updateEdit({
+  Future<Either<Failure, Unit>> updateEdit({
     required String editAdminCode,
     required String content,
     required List<String> imagesToRemove,
@@ -37,13 +39,19 @@ class ShareRepository {
       request.files.add(await http.MultipartFile.fromPath('files', file.path));
     }
 
-    var response = await request.send();
-    if (response.statusCode != 200) {
-      throw Exception('Update Edit failed: ${response.reasonPhrase}');
+    try {
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        return const Right(unit);
+      } else {
+        return Left(ServerFailure(response.reasonPhrase ?? 'Update Edit failed'));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 
-  Future<void> submitToDesk({
+  Future<Either<Failure, Unit>> submitToDesk({
     required String deskName,
     required String content,
     required List<File> files,
@@ -57,9 +65,15 @@ class ShareRepository {
       request.files.add(await http.MultipartFile.fromPath('files', file.path));
     }
 
-    var response = await request.send();
-    if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception('Invalid desk name, try again with another desk name');
+    try {
+      var response = await request.send();
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return const Right(unit);
+      } else {
+        return Left(ServerFailure(response.reasonPhrase ?? 'Invalid desk name, try again with another desk name'));
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -76,7 +90,7 @@ class ShareRepository {
     return [];
   }
 
-  Future<Map<String, dynamic>> postData({
+  Future<Either<Failure, Map<String, dynamic>>> postData({
     required String content,
     required bool isLive,
     required List<File> localFiles,
@@ -84,7 +98,7 @@ class ShareRepository {
   }) async {
 
     const baseUrl = ApiConfig.baseUrl; 
-    final url = Uri.parse("$baseUrl/dynamic");
+    final url = Uri.parse("$baseUrl/desk/dynamic");
     var request = http.MultipartRequest('POST', url);
     request.fields['content'] = content;
 
@@ -104,9 +118,9 @@ class ShareRepository {
     var responseBody = await response.stream.bytesToString();
     debugPrint('Share Response Body: $responseBody');
     if (response.statusCode == 200) {
-      return jsonDecode(responseBody);
+      return Right(jsonDecode(responseBody));
     } else {
-      throw Exception('Error posting data: ${response.reasonPhrase}');
+      return Left(ServerFailure(response.reasonPhrase ?? ''));
     }
   }
 }

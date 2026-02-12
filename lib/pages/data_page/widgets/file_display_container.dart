@@ -1,6 +1,5 @@
 import 'package:air_desk/model/image_data.dart';
 import 'package:air_desk/pages/data_page/widgets/file_preview_container.dart';
-import 'package:air_desk/utils/global_colours.dart';
 import 'package:flutter/material.dart';
 
 import '../../../widgets/download_file.dart';
@@ -8,79 +7,134 @@ import '../../../widgets/download_file.dart';
 class FileDisplayContainer extends StatelessWidget {
   const FileDisplayContainer({
     super.key,
-    // required this.imageUrl,
     required this.files,
   });
-  // final String imageUrl;
+
   final List<ImageData> files;
 
   @override
   Widget build(BuildContext context) {
-    // CustomFileType fileType = CustomFileType();
-    final isDarkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
+    if (files.isEmpty) return const SizedBox.shrink();
 
-    
-    const borderColor = Color.fromRGBO(0, 108, 255, 0.1);
-    // Widget content = fileType.isImageFile(imageUrl)? 
-    return ListView.separated(
-      separatorBuilder: (context, index) => const SizedBox(height: 10),
-      itemCount: files.length,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        final url = files[index].url ?? '';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-        final fileName = files[index].originalName ?? '';
-        return Container(
-          padding: const EdgeInsets.all(10),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: GlobalColours(context).containerColor,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: isDarkMode ? Colors.transparent : borderColor, width: 1),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xff1e1e1e) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-          child: Row(
-            children: [
-              FilePreviewContainer(url: url),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  fileName,
-                  softWrap: true,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.left,
-                  maxLines: 4,
-                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.attach_file,
+                  size: 18,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
                 ),
-              ),
-              const Spacer(),
-              DownloadFile(
-                index: index,
-                // file: files,
-                imageLength: files.length,
-                url: url,
-                fileName: fileName,
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(
+                  "ATTACHMENTS (${files.length})",
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.2,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
           ),
-        );
-      });
-          // : Container(
-          //     height: 110,
-          //     width: double.infinity,
-          //     decoration: BoxDecoration(
-          //       color: Theme.of(context).cardColor,
-          //       borderRadius: BorderRadius.circular(10),
-          //     ),
-          //     child: Center(
-          //       child: Text(
-          //         imageUrl ?? 'No data',
-          //         style: Theme.of(context).textTheme.bodyLarge!.copyWith(),
-          //       ),
-          //     ),
-          //   );
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+          ),
+          
+          // Files List
+          ListView.separated(
+            padding: EdgeInsets.zero,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: files.length,
+            separatorBuilder: (context, index) => Divider(
+              height: 1,
+              thickness: 1,
+              indent: 70, // Indent to align with text start
+              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+            ),
+            itemBuilder: (context, index) {
+              final url = files[index].url ?? '';
+              final fileName = files[index].originalName ?? '';
 
-    // Widget body = uri != null && uri!.isAbsolute ? content : const SizedBox.shrink();
-    // return body;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    FilePreviewContainer(url: url),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            fileName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "File Attachment",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.grey[500] : Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFF006CFF).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DownloadFile(
+                        index: index,
+                        imageLength: files.length,
+                        url: url,
+                        fileName: fileName,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 }

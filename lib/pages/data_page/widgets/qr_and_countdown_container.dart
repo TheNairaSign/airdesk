@@ -1,6 +1,4 @@
 import 'package:air_desk/components/copy.dart';
-import 'package:air_desk/constants.dart';
-import 'package:air_desk/utils/global_colours.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -66,86 +64,195 @@ class _QrCountdownContainerState extends State<QrCountdownContainer> {
   @override
   Widget build(BuildContext context) {
     final remaining = _formatRemainingTime();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      elevation: 0,
-      color: GlobalColours(context).containerColor,
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Text(
-            //   widget.title,
-            //   style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-            // ),
-            // const SizedBox(height: 5),
-
-            Row(
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xff1e1e1e) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+          width: 1,
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                   Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    "LIVE",
+                    style: TextStyle(
+                      color: Colors.green[700],
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                QrImageView(
-                  backgroundColor: Colors.white,
-                  data: 'http://www.airdesk.me/view/${widget.code}',
-                  version: QrVersions.auto,
-                  size: 100.0,
-                ),
-                const SizedBox(width: 20),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.access_time, size: 18),
-                          const SizedBox(width: 6),
-                          Text(
-                            remaining,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500, fontSize: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      LinearProgressIndicator(
-                        value: _progressValue(),
-                        minHeight: 8,
-                        borderRadius: BorderRadius.circular(8),
-                        backgroundColor: Colors.grey[300],
-                        color: Colors.blue,
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        "Expires: ${_formatDeadline()}",
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 5),
-
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                        decoration: BoxDecoration(
-                          color: primaryBlue.withValues(alpha: .1),
-                          borderRadius: BorderRadius.circular(10),
+                      child: QrImageView(
+                        data: 'http://www.airdesk.me/view/${widget.code}',
+                        version: QrVersions.auto,
+                        size: 90.0,
+                        gapless: false,
+                        eyeStyle: const QrEyeStyle(
+                          eyeShape: QrEyeShape.square,
+                          color: Colors.black,
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              widget.code,
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, color: primaryBlue, fontFamily: "monospace"),
+                        dataModuleStyle: const QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.square,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Text(
+                            "Desk Expiring In",
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              fontWeight: FontWeight.w500,
                             ),
-                            Copy(textToCopy: widget.code),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            remaining,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: isDark ? Colors.white : const Color(0xFF006CFF),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: _progressValue(),
+                              minHeight: 6,
+                              backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                _progressValue() > 0.9 ? Colors.red : const Color(0xFF006CFF),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _formatDeadline(),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 11,
+                              color: isDark ? Colors.grey[500] : Colors.grey[500],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                )
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Divider(
+                  height: 1, 
+                  color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "DESK CODE",
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                            color: isDark ? Colors.grey[500] : Colors.grey[500],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.code,
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontFamily: "monospace",
+                            letterSpacing: 2,
+                            color: isDark ? Colors.white : Colors.black87,
+                            fontSize: 22,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFF006CFF).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Copy(
+                         textToCopy: widget.code,
+                         textColor: isDark ? Colors.white70 : const Color(0xFF006CFF),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
-
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

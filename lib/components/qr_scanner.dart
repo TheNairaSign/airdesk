@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:air_desk/pages/data_page/qr_data_page.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'dart:io';
 
@@ -42,7 +43,28 @@ class _QrScannerState extends ConsumerState<QrScanner> {
                           : '';
                       debugPrint(res.toString());
                       debugPrint(lastSegment);
-                      ref.read(viewProvider.notifier).fetchData(lastSegment);
+                      ref.read(viewProvider.notifier).fetchData(lastSegment).then((result) {
+                        result.fold(
+                          (failure) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
+                            );
+                             controller.start(); // Restart if failed? Or keep stopped? Maybe restart for retry.
+                          },
+                          (data) {
+                            if (context.mounted) {
+                              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                                builder: (context) => QrDataPage(
+                                  content: data.text,
+                                  files: data.images,
+                                  data: data.code,
+                                  createdAt: data.createdAt ?? DateTime.now(),
+                                ),
+                              ));
+                            }
+                          },
+                        );
+                      });
                     }
                   }
                 }

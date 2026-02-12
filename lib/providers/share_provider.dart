@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'package:air_desk/core/failures/failure.dart';
+import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sharing_intent/model/sharing_file.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../model/desk_data.dart';
 import '../model/history_model.dart';
 import '../model/image_data.dart';
 import '../repositories/share_repository.dart';
@@ -11,6 +14,23 @@ import '../services/desk_cache_service.dart';
 import 'history_provider.dart';
 import 'receive_file_provider.dart';
 import 'view_provider.dart';
+
+
+abstract class SubmitResult {}
+
+class PostDataSuccess extends SubmitResult {
+  final Map<String, dynamic> data;
+  PostDataSuccess(this.data);
+}
+
+class DeskSubmitSuccess extends SubmitResult {}
+
+class UpdateEditSuccess extends SubmitResult {}
+
+class FetchDataSuccess extends SubmitResult {
+  final DeskData data;
+  FetchDataSuccess(this.data);
+}
 
 
 final shareRepositoryProvider = Provider<ShareRepository>((ref) => ShareRepository());
@@ -164,35 +184,41 @@ class ShareNotifier extends StateNotifier<ShareState> {
     return state.initialEditFiles.where((f) => !editPaths.contains(f.url)).toList();
   }
 
-  Future<void> updateEdit() async {
+  Future<Either<Failure, Unit>> updateEdit() async {
     state = state.copyWith(isLoading: true);
     final removedFiles = getEditedFiles().map((e) => Uri.parse(e.url).pathSegments.last).toList();
 
     try {
-      await _shareRepo.updateEdit(
+      final result = await _shareRepo.updateEdit(
         editAdminCode: state.editAdminCode!,
         content: ref.read(shareControllerProvider).text,
         imagesToRemove: removedFiles,
         newFiles: state.files,
       );
       
-      ref.read(shareControllerProvider).clear();
-      state = state.copyWith(
-        editAdminCode: '',
-        isEdit: false,
-        initialEditFiles: [],
-        editFiles: [],
-        files: [],
-        forceEditAdminCode: true,
+      return result.fold(
+        (l) => Left(l),
+        (r) {
+          ref.read(shareControllerProvider).clear();
+          state = state.copyWith(
+            editAdminCode: '',
+            isEdit: false,
+            initialEditFiles: [],
+            editFiles: [],
+            files: [],
+            forceEditAdminCode: true,
+          );
+          return const Right(unit);
+        }
       );
     } catch (error) {
-      rethrow;
+      return Left(ServerFailure(error.toString()));
     } finally {
       state = state.copyWith(isLoading: false);
     }
   }
 
-  void submit() {
+  Future<Either<Failure, SubmitResult>> submit() async {
     final viewNotifier = ref.read(viewProvider.notifier);
     final viewState = ref.read(viewProvider);
     final sendCodeController = ref.read(sendCodeControllerProvider);
@@ -206,30 +232,41 @@ class ShareNotifier extends StateNotifier<ShareState> {
     final isView = shareController.text.isEmpty && (viewText.isNotEmpty && !viewText.startsWith('@') && viewText.length == 6);
 
     if (sendToDesk) {
-      submitToDesk(deskName);
+      final result = await submitToDesk(deskName);
+      return result.map((_) => DeskSubmitSuccess());
     } else if (isEdit) {
-      updateEdit();
+      final result = await updateEdit();
+      return result.map((_) => UpdateEditSuccess());
     } else if (isView) {
       sendCodeController.clear();
-      viewNotifier.fetchData(viewText);
+      final result = await viewNotifier.fetchData(viewText);
+      return result.map((data) => FetchDataSuccess(data));
     } else {
-      postData(receiveFileNotifier.sharedFiles);
+      final result = await postData(receiveFileNotifier.sharedFiles);
+      return result.map((data) => PostDataSuccess(data));
     }
   }
 
-  Future<void> submitToDesk(String deskName) async {
+  Future<Either<Failure, Unit>> submitToDesk(String deskName) async {
     state = state.copyWith(isLoading: true);
     try {
-      await _shareRepo.submitToDesk(
+      final result = await _shareRepo.submitToDesk(
         deskName: deskName,
         content: ref.read(shareControllerProvider).text,
         files: state.files,
       );
-      await DeskCacheService().cacheDeskCode(deskName);
-      ref.read(shareControllerProvider).clear();
-      clearFiles();
+
+      return result.fold(
+        (l) => Left(l),
+        (r) async {
+          await DeskCacheService().cacheDeskCode(deskName);
+          ref.read(shareControllerProvider).clear();
+          clearFiles();
+          return const Right(unit);
+        }
+      );
     } catch (error) {
-      rethrow;
+      return Left(ServerFailure(error.toString()));
     } finally {
       state = state.copyWith(isLoading: false);
     }
@@ -245,7 +282,7 @@ class ShareNotifier extends StateNotifier<ShareState> {
     ref.read(receiveFileProvider.notifier).clearFiles();
   }
 
-  Future<Map<String, dynamic>> postData(List<SharedFile> sharedFiles) async {
+  Future<Either<Failure, Map<String, dynamic>>> postData(List<SharedFile> sharedFiles) async {
     state = state.copyWith(isLoading: true);
     try {
       final responseData = await _shareRepo.postData(
@@ -255,12 +292,17 @@ class ShareNotifier extends StateNotifier<ShareState> {
         sharedFilePaths: sharedFiles.map((e) => e.value ?? "").toList(),
       );
 
-      await addNewHistoryItem(responseData["data"]["code"], responseData);
-      clearFiles();
-      return responseData;
+    return responseData.fold(
+        (l) => Left(l), 
+        (r) async {
+          await addNewHistoryItem(r["data"]["code"], r);
+          clearFiles();
+          return Right(r);
+        }
+      );
     } catch (e) {
       debugPrint('Error in postData: $e');
-      return {};
+      return Left(ServerFailure(e.toString()));
     } finally {
       state = state.copyWith(isLoading: false);
       ref.read(shareControllerProvider).clear();
