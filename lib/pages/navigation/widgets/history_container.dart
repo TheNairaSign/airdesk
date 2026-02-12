@@ -1,4 +1,5 @@
 import 'package:air_desk/pages/data_page/qr_data_page.dart';
+import 'package:air_desk/utils/loading_dialog.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -70,7 +71,12 @@ class HistoryItemWidget extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () async {
+        showLoadingDialog(context);
         final result = await ref.read(viewProvider.notifier).fetchData(item.code);
+        
+        if (context.mounted) {
+          Navigator.of(context).pop(); // Dismiss loading dialog
+        }
         
         result.fold(
           (failure) {

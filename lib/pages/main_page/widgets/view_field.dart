@@ -3,6 +3,7 @@ import 'package:air_desk/pages/data_page/qr_data_page.dart';
 import 'package:air_desk/providers/my_desk_provider.dart';
 import 'package:air_desk/providers/view_provider.dart';
 import 'package:air_desk/services/desk_cache_service.dart';
+import 'package:air_desk/utils/loading_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -101,15 +102,24 @@ class _ViewFieldState extends ConsumerState<ViewField> with SingleTickerProvider
                 border: InputBorder.none
               ),
               onFieldSubmitted: (value) async {
+                showLoadingDialog(context);
                 final result = await ref.read(viewProvider.notifier).submitView();
                 
+                if (context.mounted) {
+                  Navigator.of(context).pop(); // Dismiss loading dialog
+                }
+
                 result.fold(
                   (failure) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
-                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
+                      );
+                    }
                   },
                   (success) {
+                    if (!context.mounted) return;
+
                     if (success is DeskCheckSuccess) {
                       final message = success.exists ? "Desk verified!" : "Desk not found";
                       final color = success.exists ? Colors.green : Colors.red;
@@ -121,28 +131,6 @@ class _ViewFieldState extends ConsumerState<ViewField> with SingleTickerProvider
                         const SnackBar(content: Text("Edit mode enabled"), backgroundColor: Colors.green),
                       );
                     } else if (success is FetchDeskSuccess) {
-                       // Typically fetchData already navigates or updates state that triggers navigation? 
-                       // The existing logic just called fetchData which updated state. 
-                       // The UI reacting to deskData change might handle navigation? 
-                       // Assuming SendButton handles navigation for regular fetch? 
-                       // Wait, ViewField is also used to VIEW. 
-                       // If FetchDeskSuccess, we might want to navigate to QrDataPage or similar?
-                       // The SendButton logic: 
-                       // result.fold(..., (success) { if (success is FetchDataSuccess) ... Navigator.push... })
-                       // So I should replicate that navigation here if it's the intent.
-                       
-                       // Looking at SendButton.dart (from context):
-                       /*
-                        if (success is FetchDataSuccess) {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => QrDataPage(
-                              content: success.data.text,
-                              ...
-                            ),
-                          ));
-                        }
-                       */
-                       // I will duplicate this navigation here.
                        Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => QrDataPage(
                             content: success.data.text,
