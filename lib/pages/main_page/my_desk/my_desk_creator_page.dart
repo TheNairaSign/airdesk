@@ -24,7 +24,6 @@ class MyDeskCreatorPage extends ConsumerStatefulWidget {
 }
 
 class _MyDeskCreatorPageState extends ConsumerState<MyDeskCreatorPage> with SingleTickerProviderStateMixin {
-
   late Future<MyDeskData?> _creatorDeskDataFuture;
   late TabController _tabController;
 
@@ -34,54 +33,21 @@ class _MyDeskCreatorPageState extends ConsumerState<MyDeskCreatorPage> with Sing
     _tabController = TabController(length: 2, vsync: this);
     _creatorDeskDataFuture = Future(() => ref.read(myDeskProvider.notifier).getCreatorDesks(load: false));
   }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final submissions = ref.watch(myDeskProvider).myDeskData?.submissions;
+    final colors = GlobalColours(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(
-        forceMaterialTransparency: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: TextButton.icon(
-              iconAlignment: IconAlignment.end,
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                backgroundColor: GlobalColours(context).containerColor,
-                foregroundColor: GlobalColours(context).textColorForContainer,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              icon: const Icon(Icons.refresh, size: 15,),
-              label: Text('Refresh', style:  Theme.of(context).textTheme.bodyMedium?.copyWith(),),
-              onPressed: () {
-                setState(() {
-                  _creatorDeskDataFuture = ref.read(myDeskProvider.notifier).getCreatorDesks(load: false);
-                });
-              },
-            ),
-          ),
-        ],
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('MyDesk', style:  Theme.of(context).textTheme.headlineSmall?.copyWith(color: GlobalColours(context).textColorForContainer, fontWeight: FontWeight.bold),),
-            const SizedBox(height: 5),
-            Text('Your personal desk submissions', style:  Theme.of(context).textTheme.bodySmall?.copyWith(color: GlobalColours(context).textColorForContainer),),
-          ],
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-            isScrollable: true,
-            indicatorColor: GlobalColours(context).buttonColor,
-            unselectedLabelColor: Colors.grey,
-            unselectedLabelStyle: Theme.of(context).textTheme.bodyMedium,
-            labelStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-            labelColor: GlobalColours(context).buttonColor,
-            tabs: [
-              Text('Submissions (${submissions?.length ?? 0})'),
-              const Text('Details'),
-            ]),
-      ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: PopScope(
         canPop: true,
         onPopInvokedWithResult: (didPop, result) {
@@ -91,87 +57,202 @@ class _MyDeskCreatorPageState extends ConsumerState<MyDeskCreatorPage> with Sing
             });
           }
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-          child: FutureBuilder<MyDeskData?>(
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverAppBar(
+                expandedHeight: 180,
+                floating: false,
+                pinned: true,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                elevation: innerBoxIsScrolled ? 2 : 0,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: BoxDecoration(
+                      color: colors.containerColor,
+                    ),
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 100, 20, 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'MyDesk',
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: colors.textColorForContainer,
+                                  letterSpacing: -1,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Manage your submissions and desk details',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: colors.textColorForContainer.withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colors.containerColor,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.refresh, size: 20),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _creatorDeskDataFuture = ref.read(myDeskProvider.notifier).getCreatorDesks(load: false);
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 10),
+                ],
+                bottom: PreferredSize(
+                  preferredSize: const Size.fromHeight(50),
+                  child: Container(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    child: TabBar(
+                      controller: _tabController,
+                      indicatorSize: TabBarIndicatorSize.label,
+                      indicatorColor: primaryBlue,
+                      labelColor: primaryBlue,
+                      unselectedLabelColor: Colors.grey,
+                      labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 16),
+                      indicator: UnderlineTabIndicator(
+                        borderSide: const BorderSide(width: 4.0, color: primaryBlue),
+                        borderRadius: BorderRadius.circular(2),
+                        insets: const EdgeInsets.symmetric(horizontal: 16.0),
+                      ),
+                      tabs: [
+                        Tab(text: 'Submissions (${submissions?.length ?? 0})'),
+                        const Tab(text: 'Desk Details'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ];
+          },
+          body: FutureBuilder<MyDeskData?>(
             future: _creatorDeskDataFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return SpinKitRing(color: GlobalColours(context).buttonColor, size: 50, lineWidth: 3);
-              } 
-              else if (snapshot.hasError) {
-                debugPrint('Error in FutureBuilder: ${snapshot.error}');
-                return Column(
-                  children: [
-                    Center(child: Text('Error: ${snapshot.error}')),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context)..pop()..push(MaterialPageRoute(
-                          builder: (context) => const MyDeskPage(),
-                        ));
-                      },
-                      child: Text(
-                        'Try new different code', 
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.blue, decoration: TextDecoration.underline)),
-                    )
-                  ],
+                return Center(
+                  child: SpinKitFadingCube(
+                    color: primaryBlue.withValues(alpha: 0.5),
+                    size: 40,
+                  ),
                 );
+              } else if (snapshot.hasError) {
+                return _buildErrorState(context, snapshot.error);
               } else {
-                if (!snapshot.hasData || snapshot.data == null || snapshot.data!.myDesk == null) {
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Center(child: Text('No desk found. Please create or access a new desk.')),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        style: TextButton.styleFrom(
-                          backgroundColor: GlobalColours(context).buttonColor,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => const MyDeskPage(),
-                          ));
-                        },
-                        child: Text(
-                          'Try another code', 
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-                      )
-                    ],
-                  );
+                final deskData = snapshot.data;
+                if (deskData == null || deskData.myDesk == null) {
+                  return _buildEmptyDeskState(context);
                 }
-                final deskData = snapshot.data!;
-                final submissions = deskData.submissions;
+                
+                final deskCode = deskData.myDesk?.code ?? '';
+                final adminCode = deskData.myDesk?.adminCode ?? '';
 
-                void onRefresh() {
-                  setState(() {
-                    _creatorDeskDataFuture = ref.read(myDeskProvider.notifier).getCreatorDesks(load: false);
-                  });
-                }
-
-                final deskCode = deskData.myDesk!.code!;
-                final adminCode = deskData.myDesk!.adminCode!;
-        
                 return TabBarView(
                   controller: _tabController,
                   children: [
-                    SubmissionsTab(
-                      onRefresh: onRefresh,
-                      deskCode: deskCode,
-                      submissions: submissions,
-                      adminCode: adminCode,
-                      isPremium: deskData.myDesk?.isPremium ?? false,
-                      limit: deskData.myDesk?.submissionLimit,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                      child: SubmissionsTab(
+                        onRefresh: () {
+                          setState(() {
+                            _creatorDeskDataFuture = ref.read(myDeskProvider.notifier).getCreatorDesks(load: false);
+                          });
+                        },
+                        deskCode: deskCode,
+                        submissions: deskData.submissions,
+                        adminCode: adminCode,
+                        isPremium: deskData.myDesk?.isPremium ?? false,
+                        limit: deskData.myDesk?.submissionLimit,
+                      ),
                     ),
-                    DeskDetailsPage(deskCode: deskCode, adminCode: adminCode)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                      child: DeskDetailsPage(deskCode: deskCode, adminCode: adminCode, deskData: deskData),
+                    ),
                   ],
                 );
               }
             },
-          )
+          ),
         ),
-      )
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, dynamic error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 60, color: Colors.red),
+          const SizedBox(height: 16),
+          Text('Something went wrong', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Text(error.toString(), textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MyDeskPage()));
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: primaryBlue, foregroundColor: Colors.white),
+            child: const Text('Try Different Code'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyDeskState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.desk_outlined, size: 80, color: Colors.grey.withValues(alpha: 0.3)),
+          const SizedBox(height: 16),
+          const Text('No desk found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          const Text('Create or access a new desk to get started', style: TextStyle(color: Colors.grey)),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MyDeskPage()));
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryBlue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Access Desk'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -195,47 +276,75 @@ class SubmissionsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      color: Colors.blue,
+      color: primaryBlue,
       onRefresh: () async => onRefresh(),
       child: ListView(
+        padding: EdgeInsets.zero,
         children: [
-          if (!isPremium) ...[
-            Row(
+          if (!isPremium) _buildPremiumBanner(context),
+          if (submissions == null || submissions!.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(top: 80),
+              child: EmptyState(),
+            )
+          else
+            ...List.generate(submissions?.length ?? 0, (index) {
+              return SubmissionListTile(submission: submissions![index]);
+            }),
+          const SizedBox(height: 100), // Spacing for bottom
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumBanner(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade800, Colors.blue.shade600],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${limit?.used}/${limit?.monthly} per month',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(),
+                  'Free Plan Status',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
-                const Spacer(),
-                SizedBox(
-                  height: 30,
-                  child: ElevatedButton(
-                    style: ButtonStyle(
-                      padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 5, horizontal: 10)),
-                      backgroundColor: const WidgetStatePropertyAll(primaryBlue),
-                      foregroundColor: WidgetStatePropertyAll(GlobalColours(context).buttonTextColor),
-                      shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                    ),
-                    onPressed: () {
-                      showDialog(context: context, builder: (context) => UpgradePopup(adminCode: adminCode));
-                    },
-                    child: Text(
-                      'Get premium',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold))
-                  ),
-                )
+                const SizedBox(height: 2),
+                Text(
+                  '${limit?.used}/${limit?.monthly} submissions this month',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white.withValues(alpha: 0.9)),
+                ),
               ],
             ),
-            const SizedBox(height: 20),
-          ],
-          if (submissions != null && submissions!.isEmpty)
-            const EmptyState()
-          else
-            Column(
-              children: List.generate(submissions?.length ?? 0, (index) {
-                return SubmissionListTile(submission: submissions![index]);
-              }),
-            )
+          ),
+          ElevatedButton(
+            onPressed: () => showDialog(context: context, builder: (context) => UpgradePopup(adminCode: adminCode)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: primaryBlue,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Upgrade', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
         ],
       ),
     );
@@ -243,131 +352,219 @@ class SubmissionsTab extends StatelessWidget {
 }
 
 class DeskDetailsPage extends StatelessWidget {
-  const DeskDetailsPage({super.key, required this.deskCode, required this.adminCode});
+  const DeskDetailsPage({super.key, required this.deskCode, required this.adminCode, required this.deskData});
   final String deskCode, adminCode;
+  final MyDeskData deskData;
 
   @override
   Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildShareCard(context),
+          const SizedBox(height: 24),
+          _buildCodeSection(context, "Admin Access", adminCode, true),
+          const SizedBox(height: 24),
+          _buildInfoSection(context),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShareCard(BuildContext context) {
+    final colors = GlobalColours(context);
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: colors.containerColor,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: primaryBlue.withValues(alpha: 0.05),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.share_outlined, size: 32, color: primaryBlue),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            "Share your Desk",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Allow others to send files and messages directly to you using your desk code.",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey[600], height: 1.5),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => _showShareSheet(context),
+            icon: const Icon(Icons.qr_code_2, size: 20),
+            label: const Text("Share Desk Code", style: TextStyle(fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryBlue,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 54),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCodeSection(BuildContext context, String title, String code, bool isSensitive) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          child: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        ),
+        _CodeBox(
+          title: title,
+          code: code,
+          textColor: isSensitive ? Colors.red : primaryBlue,
+          color: isSensitive ? Colors.red.withValues(alpha: 0.05) : primaryBlue.withValues(alpha: 0.05),
+          iconColor: isSensitive ? Colors.red : primaryBlue,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoSection(BuildContext context) {
+    final colors = GlobalColours(context);
+    final isPremium = deskData.myDesk?.isPremium ?? false;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isPremium ? Colors.amber.withValues(alpha: 0.05) : colors.containerColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isPremium ? Colors.amber.withValues(alpha: 0.3) : Colors.transparent,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(
+                isPremium ? Icons.verified : Icons.info_outline,
+                color: isPremium ? Colors.amber : primaryBlue,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                isPremium ? "Premium Desk" : "Upgrade to Premium",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              if (!isPremium)
+                TextButton(
+                  onPressed: () => showDialog(context: context, builder: (context) => UpgradePopup(adminCode: adminCode)),
+                  child: const Text("View Details", style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            isPremium 
+              ? "You have full access to all premium features, including unlimited submissions and larger file limits."
+              : "Get unlimited submissions, higher file size limits, and priority support with AirDesk Premium.",
+            style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.4),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showShareSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return BlurBackground(
+          blurX: 10,
+          blurY: 10,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  "Desk Details",
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 18, fontWeight: FontWeight.bold, color: GlobalColours(context).textColorForContainer),
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  "Your personal submission desk",
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                const Text(
+                  'Share Desk',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Others can use this QR or code to send files.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 32),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: QrImageView(
+                    data: deskCode,
+                    size: 180,
+                    version: QrVersions.auto,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                EditCodeContainer(
+                  editCode: '@$deskCode',
+                  title: 'Desk Code',
+                  description: 'Used for quick access',
+                  width: double.infinity,
+                ),
+                const SizedBox(height: 24),
               ],
             ),
-            SizedBox(
-              height: 30,
-              child: ElevatedButton(
-                style: ButtonStyle(
-                  padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 5, horizontal: 10)),
-                  backgroundColor: WidgetStatePropertyAll(GlobalColours(context).buttonColor),
-                  foregroundColor: WidgetStatePropertyAll(GlobalColours(context).buttonTextColor),
-                  shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                ),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return BlurBackground(
-                        blurX: 5,
-                        blurY: 5,
-                        child: Container(
-                          padding: const EdgeInsets.all(15),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).scaffoldBackgroundColor,
-                            borderRadius: const BorderRadius.only(topLeft: Radius.circular(8), topRight: Radius.circular(8)),
-                          ),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('You can either share the desk code or the QR code to receive files and messages to your desk.',
-                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: GlobalColours(context).textColorForContainer, fontSize: 16),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 10),
-                                QrImageView(data: deskCode, size: 200, version: QrVersions.auto, backgroundColor: Colors.white),
-                                EditCodeContainer(
-                                  editCode: '@$deskCode',
-                                  title: 'MyDesk Code',
-                                  description: 'Share this code to receive files and messages to your desk',
-                                  width: double.infinity,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-                child: Text(
-                  'Share desk',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 20),
-
-        // Row for Public Code and Admin Code
-        _CodeBox(
-          title: "Admin Code",
-          code: adminCode,
-          textColor: Colors.red,
-          color: Colors.red.withValues(alpha: .1),
-          iconColor: Colors.red,
-        ),
-
-        const SizedBox(height: 20),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: GlobalColours(context).containerColor,
-            borderRadius: BorderRadius.circular(15),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text('Upgrade to Premium', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold, color: GlobalColours(context).textColorForContainer)),
-                  const Spacer(),
-                  SizedBox(
-                    height: 20,
-                    child: GestureDetector(
-                      onTap: () {
-                        showDialog(context: context, builder: (context) => UpgradePopup(adminCode: adminCode));
-                      },
-                      child: Text(
-                        'Upgrade',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: primaryBlue, fontWeight: FontWeight.bold),
-                      )
-                    ),
-                  )
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text('Get unlimited submissions, higher file limits, and priority support', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10))
-            ]
-          )
-        )
-      ],
+        );
+      },
     );
   }
 }
@@ -396,11 +593,19 @@ class _CodeBoxState extends State<_CodeBox> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = GlobalColours(context);
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: GlobalColours(context).containerColor,
-        borderRadius: BorderRadius.circular(15),
+        color: colors.containerColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,29 +614,37 @@ class _CodeBoxState extends State<_CodeBox> {
             children: [
               Text(
                 widget.title,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: GlobalColours(context).textColorForContainer, fontWeight: FontWeight.bold)),
+                style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey),
+              ),
               const Spacer(),
-              if (!_obscureText)
-              Copy(textToCopy: widget.code),
+              if (!_obscureText) Copy(textToCopy: widget.code),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: widget.color,
-                    borderRadius: BorderRadius.circular(6),
+                    color: widget.color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
-                      Text(
-                        _obscureText ? '*********': widget.code,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.red, fontWeight: FontWeight.bold, fontFamily: "monospace"),
+                      Expanded(
+                        child: Text(
+                          _obscureText ? '••••••••••••' : widget.code,
+                          style: TextStyle(
+                            color: widget.textColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            letterSpacing: _obscureText ? 2 : 0,
+                            fontFamily: "monospace",
+                          ),
+                        ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
                           setState(() {
@@ -439,16 +652,15 @@ class _CodeBoxState extends State<_CodeBox> {
                           });
                         },
                         child: Icon(
-                          _obscureText ? Icons.visibility_off : Icons.visibility,
+                          _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                           color: widget.iconColor,
-                          size: 15,
+                          size: 20,
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-
             ],
           )
         ],

@@ -1,6 +1,5 @@
 import 'package:air_desk/model/submission.dart';
 import 'package:air_desk/pages/main_page/widgets/submission_item_tile.dart';
-import 'package:air_desk/utils/global_colours.dart';
 import 'package:flutter/material.dart';
 
 class SubmissionsDisplay extends StatelessWidget {
@@ -45,34 +44,40 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: GlobalColours(context).containerColor,
-        borderRadius: BorderRadius.circular(15),
-      ),
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 40,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            "No submissions yet",
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.05),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.inbox_outlined,
+              size: 48,
+              color: Colors.grey.shade400,
             ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 24),
           Text(
-            "Share your code with others to receive content",
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontSize: 12,
-              color: Colors.grey,
+            "No submissions yet",
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              "Share your desk code with others to start receiving files and messages.",
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.grey,
+                height: 1.5,
+              ),
             ),
           ),
         ],

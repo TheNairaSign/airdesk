@@ -1,3 +1,4 @@
+import 'package:air_desk/constants.dart';
 import 'package:air_desk/model/submission.dart';
 import 'package:air_desk/pages/data_page/qr_data_page.dart';
 import 'package:air_desk/utils/global_colours.dart';
@@ -15,93 +16,155 @@ class SubmissionListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = GlobalColours(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      height: 80,
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: GlobalColours(context).containerColor,
-        borderRadius: BorderRadius.circular(15)
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        title: Row(
-          children: [
-            Text(
-              formatDate(submission.createdAt ?? ''),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-            ),
-            const SizedBox(width: 6),
-            const Icon(Icons.circle, size: 4, color: Colors.grey),
-            const SizedBox(width: 6),
-            const Icon(Icons.remove_red_eye_outlined, size: 14, color: Colors.grey),
-            const SizedBox(width: 4),
-            Text(
-              submission.viewCount.toString(),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-            ),
-          ],
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(
-            submission.text.toString(),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyMedium,
+        color: colors.containerColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (submission.images!.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: BorderRadius.circular(7),
-                ),
-                child: Row(
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => _navigateToDetails(context),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    const Icon(Icons.image_outlined, size: 14, color: Colors.grey),
-                    const SizedBox(width: 3),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.access_time, size: 12, color: Colors.blue),
+                          const SizedBox(width: 4),
+                          Text(
+                            formatDate(submission.createdAt ?? ''),
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    _StatItem(
+                      icon: Icons.remove_red_eye_outlined,
+                      label: submission.viewCount.toString(),
+                    ),
+                    if (submission.images != null && submission.images!.isNotEmpty) ...[
+                      const SizedBox(width: 12),
+                      _StatItem(
+                        icon: Icons.image_outlined,
+                        label: submission.images!.length.toString(),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  submission.text.toString(),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Text(
-                      submission.images!.length.toString(),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
+                      'Code: ${submission.code}',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.grey[500],
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [primaryBlue, primaryBlue.withOpacity(0.8)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            "View Details",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.chevron_right, size: 16, color: Colors.white),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            if (submission.images != null && submission.images!.isNotEmpty) const SizedBox(width: 8),
-            SizedBox(
-              height: 27,
-              child: TextButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => QrDataPage(
-                      content: submission.text,
-                      files: submission.images,
-                      data: submission.code,
-                      createdAt: DateTime.parse(submission.createdAt!),
-                    ),
-                  ));
-                },
-                icon: const Text("View"),
-                label: const Icon(Icons.arrow_forward, size: 14),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                  foregroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(7),
-                  ),
-                  backgroundColor: Colors.blue.withValues(alpha: 0.1),
-                ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+
+  void _navigateToDetails(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => QrDataPage(
+        content: submission.text,
+        files: submission.images,
+        data: submission.code,
+        createdAt: DateTime.parse(submission.createdAt!),
+      ),
+    ));
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _StatItem({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: Colors.grey[500]),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }
